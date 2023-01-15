@@ -1,0 +1,122 @@
+query MessageComments($messageType: MessageType!, $messageId: ID!, $loadMoreCommentKey: JSON) {
+  message(messageType: $messageType, id: $messageId) {
+    id
+    ... on OriginalPost {
+      comments(loadMoreKey: $loadMoreCommentKey) {
+        ...CommentConnectionFragment
+        __typename
+      }
+      __typename
+    }
+    ... on Repost {
+      comments(loadMoreKey: $loadMoreCommentKey) {
+        ...CommentConnectionFragment
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}
+
+fragment CommentConnectionFragment on CommentConnection {
+  pageInfo {
+    loadMoreKey
+    hasNextPage
+    __typename
+  }
+  nodes {
+    ...CommentFragment
+    __typename
+  }
+  __typename
+}
+
+fragment CommentFragment on Comment {
+  id
+  threadId
+  collapsed
+  collapsible
+  targetId
+  targetType
+  createdAt
+  level
+  content
+  user {
+    ...TinyUserFragment
+    __typename
+  }
+  urlsInText {
+    title
+    originalUrl
+    url
+    __typename
+  }
+  pictures {
+    format
+    picUrl
+    watermarkPicUrl
+    smallPicUrl
+    thumbnailUrl
+    width
+    height
+    __typename
+  }
+  likeCount
+  liked
+  replyCount
+  enablePictureComments
+  hotReplies {
+    ...InnerCommentFragment
+    __typename
+  }
+  __typename
+}
+
+fragment TinyUserFragment on UserInfo {
+  avatarImage {
+    thumbnailUrl
+    smallPicUrl
+    picUrl
+    __typename
+  }
+  isSponsor
+  username
+  screenName
+  briefIntro
+  __typename
+}
+
+fragment InnerCommentFragment on Comment {
+  id
+  threadId
+  createdAt
+  content
+  level
+  user {
+    ...TinyUserFragment
+    __typename
+  }
+  urlsInText {
+    title
+    originalUrl
+    url
+    __typename
+  }
+  pictures {
+    format
+    picUrl
+    thumbnailUrl
+    width
+    height
+    __typename
+  }
+  replyToComment {
+    user {
+      ...TinyUserFragment
+      __typename
+    }
+    __typename
+  }
+  __typename
+}

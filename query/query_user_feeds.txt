@@ -1,0 +1,294 @@
+query UserFeeds($username: String!, $loadMoreKey: JSON) {
+  userProfile(username: $username) {
+    username
+    feeds(loadMoreKey: $loadMoreKey) {
+      ...BasicFeedItem
+    }
+  }
+}
+
+fragment BasicFeedItem on FeedsConnection {
+  pageInfo {
+    loadMoreKey
+    hasNextPage
+  }
+  nodes {
+    ... on ReadSplitBar {
+      id
+      type
+      text
+    }
+    ... on MessageEssential {
+      ...FeedMessageFragment
+    }
+    ... on UserAction {
+      id
+      type
+      action
+      actionTime
+      ... on UserFollowAction {
+        users {
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          
+        }
+        allTargetUsers {
+          ...TinyUserFragment
+          following
+          statsCount {
+            followedCount
+            
+          }
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          
+        }
+        
+      }
+      ... on UserRespectAction {
+        users {
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          
+        }
+        targetUsers {
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          ...TinyUserFragment
+          
+        }
+        content
+        
+      }
+      
+    }
+    
+  }
+  
+}
+
+fragment FeedMessageFragment on MessageEssential {
+  ...EssentialFragment
+  ... on OriginalPost {
+    ...LikeableFragment
+    ...CommentableFragment
+    ...RootMessageFragment
+  }
+  ... on Repost {
+    ...LikeableFragment
+    ...CommentableFragment
+    ...UserPostFragment
+    ...RepostFragment  
+  }
+  ... on Question {
+    ...UserPostFragment
+  }
+  ... on OfficialMessage {
+    ...LikeableFragment
+    ...CommentableFragment
+    ...MessageInfoFragment
+    ...RootMessageFragment
+  }
+  
+}
+
+fragment EssentialFragment on MessageEssential {
+  id
+  type
+  content
+  shareCount
+  repostCount
+  createdAt
+  pictures {
+    picUrl
+  }
+  urlsInText {
+    url
+    originalUrl
+    title
+  }
+}
+
+fragment LikeableFragment on LikeableMessage {
+  liked
+  likeCount
+}
+
+fragment CommentableFragment on CommentableMessage {
+  commentCount
+}
+
+fragment RootMessageFragment on RootMessage {
+  topic {
+    id
+    content
+  }
+}
+
+fragment UserPostFragment on MessageUserPost {
+  readTrackInfo
+  user {
+    ...TinyUserFragment
+  }
+}
+
+fragment TinyUserFragment on UserInfo {
+  username
+  screenName
+}
+
+fragment MessageInfoFragment on MessageInfo {
+  video {
+    title
+    type
+    image {
+      picUrl
+    }
+  }
+  linkInfo {
+    originalLinkUrl
+    linkUrl
+    title
+    pictureUrl
+    linkIcon
+    audio {
+      title
+      type
+      image {
+        thumbnailUrl
+        picUrl
+      }
+      author
+    }
+    video {
+      title
+      type
+      image {
+        picUrl
+      }
+    }
+  }
+}
+
+fragment RepostFragment on Repost {
+  target {
+    ...RepostTargetFragment
+  }
+  targetType
+}
+
+fragment RepostTargetFragment on RepostTarget {
+  ... on OriginalPost {
+    id
+    type
+    content
+    pictures {
+      thumbnailUrl
+    }
+    topic {
+      id
+      content
+    }
+    user {
+      ...TinyUserFragment
+    }
+  }
+  ... on Repost {
+    id
+    type
+    content
+    pictures {
+      thumbnailUrl
+    }
+    user {
+      ...TinyUserFragment
+    }
+  }
+  ... on Question {
+    id
+    type
+    content
+    pictures {
+      thumbnailUrl
+    }
+    user {
+      ...TinyUserFragment
+    }
+  }
+  ... on Answer {
+    id
+    type
+    content
+    pictures {
+      thumbnailUrl
+    }
+    user {
+      ...TinyUserFragment
+    }
+  }
+  ... on OfficialMessage {
+    id
+    type
+    content
+    pictures {
+      thumbnailUrl
+    }
+  }
+  ... on DeletedRepostTarget {
+    status
+  }
+}

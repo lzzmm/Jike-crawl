@@ -1,0 +1,80 @@
+query ListNotification($loadMoreKey: JSON) {  
+  viewer {
+    notifications(loadMoreKey: $loadMoreKey) {
+      pageInfo {
+        hasNextPage
+        loadMoreKey
+        __typename
+      }
+      nodes {
+        id
+        type
+        createdAt
+        updatedAt
+        stopped
+        stoppable
+        linkUrl
+        linkType
+        referenceItem {
+          content
+          id
+          targetId
+          targetType
+          type
+          status
+          referenceImageUrl
+          __typename
+        }
+        actionType
+        actionItem {
+          type
+          usersCount
+          users {
+            screenName
+            username
+            briefIntro
+            avatarImage {
+              thumbnailUrl
+              picUrl
+              __typename
+            }
+            __typename
+          }
+          ... on NotificationFollowActionItem {
+            users {
+              following
+              screenName
+              username
+              briefIntro
+              avatarImage {
+                thumbnailUrl
+                picUrl
+                __typename
+              }
+              __typename
+            }
+            __typename
+          }
+          ... on NotificationRepostActionItem {
+            content
+            targetId
+            targetType
+            status
+            __typename
+          }
+          ... on NotificationCommentActionItem {
+            content
+            targetId
+            targetType
+            status
+            __typename
+          }
+          __typename
+        }
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

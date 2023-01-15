@@ -1,0 +1,278 @@
+query MessageDetail($messageType: MessageType!, $messageId: ID!) {
+  message(messageType: $messageType, id: $messageId) {
+    ...DetailMessageFragment
+    __typename
+  }
+}
+
+fragment DetailMessageFragment on MessageEssential {
+  ...EssentialFragment
+  isPrivate
+  ... on OriginalPost {
+    ...LikeableFragment
+    ...CommentableFragment
+    ...MessageInfoFragment
+    editedAt
+    topic {
+      ...TopicItemFragment
+      __typename
+    }
+    user {
+      ...UserCardFragment
+      following
+      __typename
+    }
+    related {
+      ...LikeableFragment
+      ...UserPostFragment
+      ...CommentableFragment
+      ...EssentialFragment
+      topic {
+        ...TopicItemFragment
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+  ... on Repost {
+    ...LikeableFragment
+    ...CommentableFragment
+    user {
+      ...UserCardFragment
+      __typename
+    }
+    ...RepostFragment
+    __typename
+  }
+  __typename
+}
+
+fragment EssentialFragment on MessageEssential {
+  id
+  type
+  content
+  shareCount
+  repostCount
+  createdAt
+  collected
+  pictures {
+    format
+    watermarkPicUrl
+    picUrl
+    thumbnailUrl
+    smallPicUrl
+    width
+    height
+    __typename
+  }
+  urlsInText {
+    url
+    originalUrl
+    title
+    __typename
+  }
+  __typename
+}
+
+fragment LikeableFragment on LikeableMessage {
+  liked
+  likeCount
+  __typename
+}
+
+fragment CommentableFragment on CommentableMessage {
+  commentCount
+  __typename
+}
+
+fragment MessageInfoFragment on MessageInfo {
+  video {
+    title
+    type
+    image {
+      picUrl
+      __typename
+    }
+    __typename
+  }
+  linkInfo {
+    originalLinkUrl
+    linkUrl
+    title
+    pictureUrl
+    linkIcon
+    audio {
+      title
+      type
+      image {
+        thumbnailUrl
+        picUrl
+        __typename
+      }
+      author
+      __typename
+    }
+    video {
+      title
+      type
+      image {
+        picUrl
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+  __typename
+}
+
+fragment TopicItemFragment on TopicInfo {
+  id
+  messagePrefix
+  content
+  intro
+  subscribedStatusRawValue
+  subscribersCount
+  squarePicture {
+    smallPicUrl
+    middlePicUrl
+    picUrl
+    __typename
+  }
+  tips {
+    inComment
+    inDraft
+    __typename
+  }
+  subscribersTextSuffix
+  subscribersName
+  recentPost
+  __typename
+}
+
+fragment UserCardFragment on UserInfo {
+  ...TinyUserFragment
+  statsCount {
+    followedCount
+    followingCount
+    __typename
+  }
+  backgroundImage {
+    picUrl
+    __typename
+  }
+  following
+  __typename
+}
+
+fragment TinyUserFragment on UserInfo {
+  avatarImage {
+    thumbnailUrl
+    smallPicUrl
+    picUrl
+    __typename
+  }
+  isSponsor
+  username
+  screenName
+  briefIntro
+  __typename
+}
+
+fragment UserPostFragment on MessageUserPost {
+  readTrackInfo
+  user {
+    ...TinyUserFragment
+    __typename
+  }
+  __typename
+}
+
+fragment RepostFragment on Repost {
+  target {
+    ...RepostTargetFragment
+    __typename
+  }
+  targetType
+  __typename
+}
+
+fragment RepostTargetFragment on RepostTarget {
+  ... on OriginalPost {
+    id
+    type
+    content
+    pictures {
+      thumbnailUrl
+      __typename
+    }
+    topic {
+      id
+      content
+      __typename
+    }
+    user {
+      ...TinyUserFragment
+      __typename
+    }
+    __typename
+  }
+  ... on Repost {
+    id
+    type
+    content
+    pictures {
+      thumbnailUrl
+      __typename
+    }
+    user {
+      ...TinyUserFragment
+      __typename
+    }
+    __typename
+  }
+  ... on Question {
+    id
+    type
+    content
+    pictures {
+      thumbnailUrl
+      __typename
+    }
+    user {
+      ...TinyUserFragment
+      __typename
+    }
+    __typename
+  }
+  ... on Answer {
+    id
+    type
+    content
+    pictures {
+      thumbnailUrl
+      __typename
+    }
+    user {
+      ...TinyUserFragment
+      __typename
+    }
+    __typename
+  }
+  ... on OfficialMessage {
+    id
+    type
+    content
+    pictures {
+      thumbnailUrl
+      __typename
+    }
+    __typename
+  }
+  ... on DeletedRepostTarget {
+    status
+    __typename
+  }
+  __typename
+}
