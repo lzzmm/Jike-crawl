@@ -14,9 +14,15 @@ Haven't implement something like crawl posts posted more than 1 month ago. If yo
 
 ### Requirements
 
-Python 3
-json
-requests
+- Python 3
+- json
+- requests
+
+~~Or you can run~~ (if not necessary do not do that)
+
+```shell
+pip install -r requirements.txt
+```
 
 ### Run
 
@@ -48,6 +54,18 @@ You can also modified code in that file to get statistics you like.
 
 ![posts_data](img/posts_data.png)
 
+### 环境
+
+- Python 3
+- json
+- requests
+
+~~可以直接运行下面命令构建环境~~（这个环境太复杂了）
+
+```shell
+pip install -r requirements.txt
+```
+
 ### 运行
 
 登录 [即刻网页版](https://web.okjike.com/)， 按 `F12` 打开开发者工具。切换到 `网络`，过滤 `Fetch/XHR`，刷新页面，这时网络上会出现一些请求。随便选一个 `graphql` 请求，在请求标头里找到 `cookie` 字段，复制值到 `cookies.txt` 文件。
@@ -71,6 +89,10 @@ python -u [python_file_path]
 您可以修改该文件得到自己想要的统计，如获取评论您最多的用户等。
 
 ## Appendices
+
+### Blog
+
+[周报 #0x01:删号跑路](https://lzzmm.github.io/2023/01/16/weekly-review-1/#project%E5%88%A0%E5%8F%B7%E8%B7%91%E8%B7%AF)
 
 ### query
 
