@@ -22,7 +22,7 @@ cookies = {
 
 def refreshCookies(x):
     print(x.json()["errors"][0]["extensions"]["code"])
-    if(x.json()["errors"][0]["extensions"]["code"] == "UNAUTHENTICATED"):
+    if x.json()["errors"][0]["extensions"]["code"] == "UNAUTHENTICATED":
         print("Token expired, trying to refresh cookies...")
         payload = {
             "operationName": "refreshToken",

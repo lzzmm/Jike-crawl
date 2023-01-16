@@ -1,56 +1,84 @@
 # Jike-crawl
 
-## 删号跑路（中文）
-
-在删号跑路之前保存自己的动态和消息。
-
-### 运行
-
-TODO:
-
-#### 保存数据
-
-TODO:
-
-#### 数据分析
-
-TODO:
-
 ## Jike-crawl (EN)
 
-Crawl all Posts, Notifications, and maybe Collections on Jike and save them in `csv file` / `json file` / `MySQL` before you delete your Jike account.
+Crawl all Posts, Notifications, and maybe Collections(undone) on Jike and save them in `csv file`(undone) / `json file` / `MySQL`(undone) before you delete your Jike account.
 
-Analysis users interacted with you and content sentiments.
+Count and analysis(undone) infomations and posts.
 
-### Todos
+Maybe using NLP for sentiment analysis(undone).
 
-TODO:
+![post_data](img/posts_data.png)
+
+Haven't implement something like crawl posts posted more than 1 month ago. If you want to do so, please try to learn GraphQL and modified the query or find some code in `data_analysis.py` may helps.
 
 ### Requirements
 
-TODO:
+Python 3
+json
+requests
 
 ### Run
 
-TODO:
+Login to [Jike](https://web.okjike.com/), press `F12` to open DevTools. Switch to `Network` tab, filter `Fetch/XHR`, refresh the page, then there will be some requests on it. Select one `graphql` request and copy value of `cookie` from `Request headers` into `cookies.txt` file.
+
+![devtools](img/devtools.png)
+
+Then run.
+
+```shell
+python -u [python_file_path]
+```
 
 #### Crawl
 
-TODO:
+Choose operations in the `main()` of `src/crawl.py` and run.
 
 #### Analysis
 
-TODO:
+Run `src/data_analysis.py`.
 
-### Appendices
+You can also modified code in that file to get statistics you like.
 
-#### query
+## 删号跑路（中文）
+
+在注销即刻账号跑路之前保存自己的动态和消息。
+
+统计并生成报告。
+
+![posts_data](img/posts_data.png)
+
+### 运行
+
+登录 [即刻网页版](https://web.okjike.com/)， 按 `F12` 打开开发者工具。切换到 `网络`，过滤 `Fetch/XHR`，刷新页面，这时网络上会出现一些请求。随便选一个 `graphql` 请求，在请求标头里找到 `cookie` 字段，复制值到 `cookies.txt` 文件。
+
+![devtools](img/devtools_cn.png)
+
+然后就可以跑了。
+
+```shell
+python -u [python_file_path]
+```
+
+#### 保存数据
+
+在 `src/crawl.py` 的 `main()` 函数中调用所需操作然后运行。
+
+#### 数据分析
+
+运行 `src/data_analysis.py`。
+
+您可以修改该文件得到自己想要的统计，如获取评论您最多的用户等。
+
+## Appendices
+
+### query
 
 `web.okjike.com` uses [GraphQL](https://graphql.cn/learn/queries/) for query.
 
 In folder `query`, there're two types of text files. One with suffix `_original` means that query is used by `web.okjike.com` originally and with too much useless content and avatar urls. Others are used in this project to get useful content.
 
-##### query infomations
+#### query infomations
 
 payload
 
@@ -87,9 +115,9 @@ returns
 
 If `"actionType": "USER_LIST"` then `"actionItem"` will be a list of users liked this post or comment.
 
-If `"actionType": "COMMENT"` then `"actionItem"` will be a comment.
+If `"actionType": "COMMENT"` then `"actionItem"` will be a comment, also with a user in `users` list.
 
-##### query user feeds
+#### query user feeds
 
 payload
 
@@ -106,7 +134,7 @@ payload
 }
 ```
 
-##### query message detail
+#### query message detail
 
 payload
 
@@ -121,7 +149,7 @@ payload
 }
 ```
 
-##### query message comments
+#### query message comments
 
 payload
 
@@ -136,7 +164,7 @@ payload
 }
 ```
 
-##### remove message
+#### remove message
 
 payload
 

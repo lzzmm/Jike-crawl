@@ -45,7 +45,7 @@ def save_db(x):
     - x: response object
     """
     # TODO: store into db
-    print(x.json())
+    print(x)
 
 
 def save_csv(x, path):
@@ -57,7 +57,7 @@ def save_csv(x, path):
     - path: csv file path
     """
     # TODO: store into csv
-    print(x.json())
+    print(x)
 
 
 def save_json(x, path, mode, indent=None):
@@ -71,7 +71,6 @@ def save_json(x, path, mode, indent=None):
     - indent: int, default: None
     """
     with open(path, mode, encoding="utf8") as f:
-        # f.seek(0, 0) TODO: write at 0, 0
         json.dump(x, f, ensure_ascii=False, indent=indent)
         f.write("\n")
 
@@ -93,7 +92,7 @@ def crawl_notifications(path):
 
     count = 1
     x = crawl(url, cookies, headers, payload)
-    if ('errors' in x.json()):  # The "has_key" method has been removed in Python 3
+    if 'errors' in x.json():  # The "has_key" method has been removed in Python 3
         refreshCookies(x)
         x = crawl(url, cookies, headers, payload)
     loadMoreKey = x.json()[
@@ -102,16 +101,16 @@ def crawl_notifications(path):
         save_json(node, path, "a")
         print("Witten in \"" + path + "\".")
 
-    while (loadMoreKey != None):  # 'hasNextPage': True
+    while loadMoreKey != None:  # 'hasNextPage': True
         payload["variables"]["loadMoreKey"] = loadMoreKey
         print(count, loadMoreKey)
         x = crawl(url, cookies, headers, payload)
-        if ('errors' in x.json()):
+        if 'errors' in x.json():
             refreshCookies(x)
             x = crawl(url, cookies, headers, payload)
         loadMoreKey = x.json()[
             "data"]["viewer"]["notifications"]["pageInfo"]["loadMoreKey"]
-        if (x.json()["data"]["viewer"]["notifications"]["nodes"]):
+        if x.json()["data"]["viewer"]["notifications"]["nodes"]:
             for node in x.json()["data"]["viewer"]["notifications"]["nodes"]:
                 save_json(node, path, "a")
         print("Witten in \"" + path + "\".")
@@ -140,12 +139,12 @@ def crawl_posts(path, user_id=None, remove=False):
         }
     }
 
-    if (user_id):
+    if user_id:
         payload["variables"]["username"] = user_id
 
     count = 1
     x = crawl(url, cookies, headers, payload)
-    if ('errors' in x.json()):
+    if 'errors' in x.json():
         refreshCookies(x)
         x = crawl(url, cookies, headers, payload)
     loadMoreKey = x.json()[
@@ -154,16 +153,16 @@ def crawl_posts(path, user_id=None, remove=False):
         save_json(node, path, "a")
         print("Witten in \"" + path + "\".")
 
-    while (loadMoreKey != None):  # 'hasNextPage': True
+    while loadMoreKey != None:  # 'hasNextPage': True
         payload["variables"]["loadMoreKey"] = loadMoreKey
         print(count, loadMoreKey)
         x = crawl(url, cookies, headers, payload)
-        if ('errors' in x.json()):
+        if 'errors' in x.json():
             refreshCookies(x)
             x = crawl(url, cookies, headers, payload)
         loadMoreKey = x.json()[
             "data"]["userProfile"]["feeds"]["pageInfo"]["loadMoreKey"]
-        if (x.json()["data"]["userProfile"]["feeds"]["nodes"]):
+        if x.json()["data"]["userProfile"]["feeds"]["nodes"]:
             for node in x.json()["data"]["userProfile"]["feeds"]["nodes"]:
                 save_json(node, path, "a")
         print("Witten in \"" + path + "\".")
