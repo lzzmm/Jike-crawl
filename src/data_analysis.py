@@ -131,22 +131,22 @@ def summarize_notifications(path):
                     users[user['username']]['count'] += 1
 
     print("\n")
-    print("\033[4;33m%d\033[0m users interacted with you in \033[34mlast year:\033[0m" % len(users))
-    print("\033[4;33m%d\033[0m post-likes, \033[4;33m%d\033[0m comments, \033[4;33m%d\033[0m comment-likes,\n\033[4;33m%d\033[0m replies, \033[4;33m%d\033[0m avatar greets, and \033[4;33m%d\033[0m users have followed you.\n" %
+    print("\033[4;33m%d\033[0m user(s) interacted with you in \033[34mlast year:\033[0m" % len(users))
+    print("\033[4;33m%d\033[0m post-like(s), \033[4;33m%d\033[0m comment(s), \033[4;33m%d\033[0m comment-like(s),\n\033[4;33m%d\033[0m replie(s), \033[4;33m%d\033[0m avatar greet(s), and \033[4;33m%d\033[0m user(s) have followed you.\n" %
           (like_count, comment_count, like_comment_count, reply_count, avatar_greet_count, followed_count))
 
     most_act_users = sorted(users.items(), key=lambda x: x[1]['count'],  reverse=True)[
         :10]  # could change
-    print("\033[4;33m%d users\033[0m users who interact with you most:" %
+    print("\033[4;33m%d users\033[0m who interact with you most:" %
           len(most_act_users))
     for user in most_act_users:
         print('\033[33m{0:<20}\033[0m\t\033[33m{1:<3}\033[0m {2:<}'.format(
             user[1]['screenName'], user[1]['count'], "time(s)"), chr(12288))
 
     print("\n")
-    print("\033[4;33m%d\033[0m users interacted with you in \033[34mall time:\033[0m" % len(
+    print("\033[4;33m%d\033[0m user(s) interacted with you in \033[34mall time:\033[0m" % len(
         users_all))
-    print("\033[4;33m%d\033[0m post-likes, \033[4;33m%d\033[0m comments, \033[4;33m%d\033[0m comment-likes,\n\033[4;33m%d\033[0m replies, \033[4;33m%d\033[0m avatar greets, and \033[4;33m%d\033[0m users have followed you.\n" %
+    print("\033[4;33m%d\033[0m post-like(s), \033[4;33m%d\033[0m comment(s), \033[4;33m%d\033[0m comment-like(s),\n\033[4;33m%d\033[0m repli(es), \033[4;33m%d\033[0m avatar greet(s), and \033[4;33m%d\033[0m user(s) have followed you.\n" %
           (like_count_all, comment_count_all, like_comment_count_all, reply_count_all, avatar_greet_count_all, followed_count_all))
 
     most_act_users = sorted(users_all.items(), key=lambda x: x[1]['count'],  reverse=True)[
@@ -207,7 +207,6 @@ def summarize_posts(path):
                 else:
                     topics[i['topic']['id']]['count'] += 1
             # TODO: post time in a day
-            # TODO: interact most num people num interacts
 
     print("\n")
     print("In \033[34m%d\033[0m:" % (cur_year-1))
@@ -218,10 +217,8 @@ def summarize_posts(path):
             100 / post_count[cur_year-base_year-2]
         print("Which is \033[4;33m", "%.2f" %
               (rate), "%\033[0m of last year's", sep='')
-    print("Received\033[33m", like_count,
-          "\033[0mlike(s) and\033[33m", comment_count, "\033[0mcomment(s)")
-    print("Get\033[33m", repost_count, "\033[0mrepost(s) and\033[33m",
-          share_count, "\033[0mshare(s)\n")
+    print("Received \033[4;33m%d\033[0m like(s) and \033[4;33m%d\033[0m comment(s)" % (like_count, comment_count))
+    print("Get \033[4;33m%d\033[0m repost(s) and \033[4;33m%d\033[0m share(s)\n" % (repost_count, share_count))
 
     most_topics = sorted(topics.items(), key=lambda x: x[1]['count'],  reverse=True)[
         :10]  # could change
@@ -238,10 +235,10 @@ def summarize_posts(path):
     print("In \033[34mall time\033[0m:")
     print("You've posted \033[4;33m", sum(post_count), "\033[0m post(s) including \033[4;33m",
           pic_count_all, "\033[0m picture(s)", sep='')
-    print("Received\033[33m", like_count_all, "\033[0mlike(s) and\033[33m",
-          comment_count_all, "\033[0mcomment(s)")
-    print("Get\033[33m", repost_count_all, "\033[0mrepost(s) and\033[33m",
-          share_count_all, "\033[0mshare(s)\n")
+    print("Received \033[4;33m%d\033[0m like(s) and \033[4;33m%d\033[0m comment(s)" % (
+        like_count, comment_count))
+    print("Get \033[4;33m%d\033[0m repost(s) and \033[4;33m%d\033[0m share(s)\n" % (
+        repost_count, share_count))
 
     most_topics = sorted(topics_all.items(), key=lambda x: x[1]['count'],  reverse=True)[
         :10]  # could change
