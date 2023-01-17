@@ -9,6 +9,7 @@ query ListNotification($loadMoreKey: JSON) {
         id
         type
         updatedAt
+        createdAt
         linkType
         referenceItem {
           content

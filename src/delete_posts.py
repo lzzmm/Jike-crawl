@@ -2,9 +2,13 @@ import os
 import sys
 import json
 import requests
+from datetime import datetime, timedelta, tzinfo
 
-from utils import refreshCookies, headers, cookies
+from utils import handle_errors, headers, cookies, UTC, GMT8
 
+BASE_TIME = datetime.strptime(
+    "2015-03-28T00:00:00.000Z", "%Y-%m-%dT%X.%fZ").astimezone(GMT8())  # Jike 1.0 online
+CURR_TIME = datetime.now(GMT8())  # current time
 
 dir_path = os.path.dirname(os.path.dirname(__file__))
 
@@ -28,6 +32,7 @@ def remove(id):
     - id: id of the post
     """
     payload["variables"]["id"] = id
+
     try:
         x = requests.post(url, cookies=cookies,
                           headers=headers,
@@ -35,32 +40,56 @@ def remove(id):
         print(x, x.json())
     except requests.exceptions.ConnectionError as e:
         print("Connection error", e.args)
+
     if ('errors' in x.json()):
-        refreshCookies(x)
+        handle_errors(x)
     return x
 
 
-def clear_all(post_path):
-    # DONE: clear all posts
+def clear(post_path, start_time, end_time):
+    # DONE: clear all posts in time range
     # Priority: low, because you can easily delete your account directly
+    # TODO: time range or other condition
     with open(post_path, 'r', encoding="utf8") as f:
         count = 0
         line = f.readline()
         while (line):
-            id = json.loads(line)['id']
-            print(id)
+            x = json.loads(line)
+            line = f.readline()
+
+            time = datetime.strptime(
+                x['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(GMT8())
+
+            if time < start_time or time > end_time:
+                continue
+
+            count += 1
+            id = x['id']
+            print(id, time)
             ################# DANGER ZONE ##################
             ################################################
             # uncomment next line to remove all your posts #
             # remove(id) # remove posts by id              #
             ################################################
-            count += 1
-            line = f.readline()
-        print(count, "line(s) operated.")
+
+        print(count, "record(s) operated.")
 
 
 if __name__ == "__main__":
     post_path = os.path.join(dir_path, "data/posts.json")
-    clear_all(post_path)
-    # id = "63c0e2ac1c2ecf69b255b6a5"
-    # remove(id)
+
+    # class datetime.datetime(year, month, day, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, *, fold=0)
+    # start_time = datetime(2021, 12, 1, tzinfo=GMT8())
+    # end_time = datetime(2021, 12, 31, tzinfo=GMT8())
+    # operate posts created during 2021/12/01 and 2021/12/31
+
+    # class datetime.timedelta(days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0)
+    # time_delta = timedelta(days=30)
+    # end_time = CURR_TIME - time_delta
+    # operate posts created before 30 days ago
+
+    start_time = BASE_TIME  # datetime
+    end_time = CURR_TIME   # datetime
+    # operate all posts
+
+    clear(post_path, start_time, end_time)

@@ -2,9 +2,10 @@ import os
 import sys
 import json
 import requests
+from datetime import datetime, timedelta, tzinfo
 
-from utils import refreshCookies, headers, cookies
-from delete_posts import clear_all
+from utils import handle_errors, save_json, headers, cookies, UTC, GMT8
+from delete_posts import clear
 
 
 dir_path = os.path.dirname(os.path.dirname(__file__))
@@ -13,7 +14,9 @@ dir_path = os.path.dirname(os.path.dirname(__file__))
 url = "https://web-api.okjike.com/api/graphql"
 
 
-json_indent = 2
+BASE_TIME = datetime.strptime(
+    "2015-03-28T00:00:00.000Z", "%Y-%m-%dT%X.%fZ").astimezone(GMT8())  # Jike 1.0 online
+CURR_TIME = datetime.now(GMT8())  # current time
 
 
 def crawl(url, cookies, headers, payload):
@@ -34,54 +37,52 @@ def crawl(url, cookies, headers, payload):
         print(x)
     except requests.exceptions.ConnectionError as e:
         print("Connection error", e.args)
+
+    # The "has_key" method has been removed in Python 3
+    while 'errors' in x.json():
+        handle_errors(x)
+        x = crawl(url, cookies, headers, payload)
+
     return x
 
 
-def save_db(x):
+def proc_node(node, path, mode, start_time, end_time, end, record_count, record_count_limit=None):
     """
-    store data into mysql
+    process notification/post
     ---
-    args: 
-    - x: response object
+    args:
+    - node: node object to process
+    - path: path to save object
+    - mode: mode to save object
+    - start_time: start time of object to be saved
+    - end_time: end time of object to be saved
+    - end: bool, end of save, so stop request
+    - record_count: number of records saved
+    - record_count_limit: limit number of records to be saved
     """
-    # TODO: store into db
-    print(x)
+    time = datetime.strptime(
+        node['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(GMT8())
+
+    if time >= start_time and time <= end_time:
+        save_json(node, path, mode)
+        record_count += 1
+        # print("Witten in \"" + path + "\".")
+
+    if (record_count_limit != None and record_count >= record_count_limit) or time < start_time:
+        end = True
+
+    return end, record_count
 
 
-def save_csv(x, path):
+def crawl_notifications(path, mode="a", record_count_limit=None, start_time=BASE_TIME, end_time=CURR_TIME):
     """
-    store data into csv
-    ---
-    args: 
-    - x: response object
-    - path: csv file path
-    """
-    # TODO: store into csv
-    print(x)
-
-
-def save_json(x, path, mode, indent=None):
-    """
-    save json object into json file
-    ---
-    args: 
-    - x: json object
-    - path: json file path
-    - mode: "a" for add, "w" for overwrite
-    - indent: int, default: None
-    """
-    with open(path, mode, encoding="utf8") as f:
-        json.dump(x, f, ensure_ascii=False, indent=indent)
-        f.write("\n")
-
-
-
-def crawl_notifications(path):
-    """
-    loop and crawl all notifications and save into database/file
+    loop and crawl all/num notifications from start_time to end_time and save into database/file
     ---
     args:
     - path: file path 
+    - num: number of records to crawl
+    - start_time: datetime object
+    - end_time: datetime object, later than start_time
     """
 
     payload = {
@@ -90,93 +91,126 @@ def crawl_notifications(path):
         "query": open(os.path.join(dir_path, "query/query_notifications.txt")).read()
     }
 
-    count = 1
+    request_count = 0
+    record_count = 0
+    end = False
+
     x = crawl(url, cookies, headers, payload)
-    if 'errors' in x.json():  # The "has_key" method has been removed in Python 3
-        refreshCookies(x)
-        x = crawl(url, cookies, headers, payload)
+
+    request_count += 1
     loadMoreKey = x.json()[
         "data"]["viewer"]["notifications"]["pageInfo"]["loadMoreKey"]
-    for node in x.json()["data"]["viewer"]["notifications"]["nodes"]:
-        save_json(node, path, "a")
-        print("Witten in \"" + path + "\".")
+    print(request_count, loadMoreKey)
 
-    while loadMoreKey != None:  # 'hasNextPage': True
+    for node in x.json()["data"]["viewer"]["notifications"]["nodes"]:
+        end, record_count = proc_node(node,
+                                      path, mode, start_time, end_time, end, record_count, record_count_limit)
+        if end == True:
+            break
+
+    while end != True and loadMoreKey != None:  # 'hasNextPage': True
+
+        request_count += 1
         payload["variables"]["loadMoreKey"] = loadMoreKey
-        print(count, loadMoreKey)
+
         x = crawl(url, cookies, headers, payload)
-        if 'errors' in x.json():
-            refreshCookies(x)
-            x = crawl(url, cookies, headers, payload)
+
         loadMoreKey = x.json()[
             "data"]["viewer"]["notifications"]["pageInfo"]["loadMoreKey"]
-        if x.json()["data"]["viewer"]["notifications"]["nodes"]:
-            for node in x.json()["data"]["viewer"]["notifications"]["nodes"]:
-                save_json(node, path, "a")
-        print("Witten in \"" + path + "\".")
-        count += 1
-    print(count, "request(s) was(were) sent.")
+        print(request_count, loadMoreKey)
+
+        # if x.json()["data"]["viewer"]["notifications"]["nodes"]:
+        for node in x.json()["data"]["viewer"]["notifications"]["nodes"]:
+            end, record_count = proc_node(
+                node, path, mode, start_time, end_time, end, record_count, record_count_limit)
+            if end == True:
+                break
+
+    print(request_count, "request(s) was(were) sent.")
+    print(record_count, "record(s) saved.")
 
 
-def crawl_posts(path, user_id=None, remove=False):
+def crawl_posts(user_id, path, mode="a", record_count_limit=None, start_time=BASE_TIME, end_time=CURR_TIME):
     """
     loop and crawl all notifications and save into database/file
     ---
     args:
     - path: file path 
     - user_id: Jike user id
-    - remove: if true, remove all posts
+    - num: number of records to crawl
+    - start_time: datetime object
+    - end_time: datetime object, later than start_time
     """
 
     payload = {
         "operationName": "UserFeeds",
         "query": open(os.path.join(dir_path, "query/query_user_feeds.txt")).read(),
         "variables": {
-            "username": "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC",
-            # "loadMoreKey": {
-            #     "lastId": "63a450102559c538e1bd3482"
-            # }
+            "username": user_id
         }
     }
 
-    if user_id:
-        payload["variables"]["username"] = user_id
+    end = False
+    request_count = 0
+    record_count = 0
 
-    count = 1
     x = crawl(url, cookies, headers, payload)
-    if 'errors' in x.json():
-        refreshCookies(x)
-        x = crawl(url, cookies, headers, payload)
+
+    request_count += 1
+
     loadMoreKey = x.json()[
         "data"]["userProfile"]["feeds"]["pageInfo"]["loadMoreKey"]
-    for node in x.json()["data"]["userProfile"]["feeds"]["nodes"]:
-        save_json(node, path, "a")
-        print("Witten in \"" + path + "\".")
+    print(request_count, loadMoreKey)
 
-    while loadMoreKey != None:  # 'hasNextPage': True
+    for node in x.json()["data"]["userProfile"]["feeds"]["nodes"]:
+        end, record_count = proc_node(node,
+                                      path, mode, start_time, end_time, end, record_count, record_count_limit)
+        if end == True:
+            break
+
+    while end != True and loadMoreKey != None:  # 'hasNextPage': True
+        request_count += 1
         payload["variables"]["loadMoreKey"] = loadMoreKey
-        print(count, loadMoreKey)
+
         x = crawl(url, cookies, headers, payload)
-        if 'errors' in x.json():
-            refreshCookies(x)
-            x = crawl(url, cookies, headers, payload)
+
         loadMoreKey = x.json()[
             "data"]["userProfile"]["feeds"]["pageInfo"]["loadMoreKey"]
-        if x.json()["data"]["userProfile"]["feeds"]["nodes"]:
-            for node in x.json()["data"]["userProfile"]["feeds"]["nodes"]:
-                save_json(node, path, "a")
-        print("Witten in \"" + path + "\".")
-        count += 1
-    print(count, "request(s) was(were) sent.")
+        print(request_count, loadMoreKey)
+
+        # if x.json()["data"]["userProfile"]["feeds"]["nodes"]:
+        for node in x.json()["data"]["userProfile"]["feeds"]["nodes"]:
+            end, record_count = proc_node(node,
+                                          path, mode, start_time, end_time, end, record_count, record_count_limit)
+            if end == True:
+                break
+
+    print(request_count, "request(s) was(were) sent.")
+    print(record_count, "record(s) saved.")
 
 
 if __name__ == "__main__":
     noti_path = os.path.join(dir_path, "data/notifications.json")
     post_path = os.path.join(dir_path, "data/posts.json")
-    user_id = "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC" # replace with your own Jike user id
+
+    ##################################################
+    # ATTENTION: Replace with your own Jike user id. #
+    user_id = "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC" #
+    ##################################################
     
-    crawl_notifications(noti_path)
-    crawl_posts(post_path, user_id)
-    
+    # class datetime.datetime(year, month, day, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, *, fold=0)
+    # start_time = datetime(2021, 1, 1, tzinfo=GMT8())
+    # end_time = datetime(2021, 12, 31, tzinfo=GMT8())
+
+    start_time = BASE_TIME              # datetime
+    end_time = CURR_TIME                # datetime
+    notifications_record_limit = None   # int
+    posts_record_limit = None           # int
+
+    crawl_notifications(
+        noti_path, "a", notifications_record_limit, start_time, end_time)
+    crawl_posts(user_id, post_path, "a",
+                posts_record_limit, start_time, end_time)
+
     # goto "delete_posts.py" and manually enable remove()
-    # clear_all(post_path)
+    # clear(post_path)

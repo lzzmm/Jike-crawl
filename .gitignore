@@ -1,3 +1,2 @@
-data/*
-cookies.txt
-src/__pycache__/*
+/cookies.txt
+/src/__pycache__/*

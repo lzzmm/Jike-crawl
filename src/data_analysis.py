@@ -4,65 +4,14 @@ import json
 import requests
 from datetime import datetime, timedelta, tzinfo
 
+from utils import read_file, UTC, GMT8
+
+
 dir_path = os.path.dirname(os.path.dirname(__file__))
 
-ZERO = timedelta(0)
-HOUR = timedelta(hours=1)
-
-
-class UTC(tzinfo):
-    def utcoffset(self, dt):
-        return ZERO
-
-    def tzname(self, dt):
-        return 'UTC'
-
-    def tzoffset(self, dt):
-        return ZERO
-
-
-class GMT8(tzinfo):
-    def utcoffset(self, dt):
-        return HOUR * 8
-
-    def tzname(self, dt):
-        return 'GMT+8'
-
-    def dst(self, dt):
-        return ZERO
-
-
-cur_year = datetime.now(GMT8()).year
-base_year = 2016
-
-
-# Not used yet...
-def print_format(str, way, width, fill=' ', ed=''):
-    try:
-        count = 0
-        for word in str:
-            if (word >= '\u4e00' and word <= '\u9fa5') or word in ['，', '。', '、', '？', '；', '：', '【', '】', '（', '）', '……', '——', '《', '》']:
-                count += 1
-        width -= count if width >= count else 0
-        print('{0,:{1}{2}{3}}'.format(
-            str, fill, way, width), end=ed, flush=True)
-    except:
-        print("Error occurs in print_format()")
-
-
-def read_file(path):
-    with open(path, 'r', encoding="utf8") as f:
-        count = 0
-        x = []
-        line = f.readline()
-        while (line):
-            x.append(json.loads(line))
-            count += 1
-            line = f.readline()
-            # if count == 100:
-            #     break
-        print("Read", count, "line(s) from", path)
-        return x
+CURR_TIME = datetime.now(GMT8())
+CURR_YEAR = CURR_TIME.year
+BASE_YEAR = 2015
 
 
 def summarize_notifications(path):
@@ -70,16 +19,26 @@ def summarize_notifications(path):
 
     users = {}
     users_all = {}
-    like_count = comment_count = like_comment_count = reply_count = avatar_greet_count = followed_count = 0
-    like_count_all = comment_count_all = like_comment_count_all = reply_count_all = avatar_greet_count_all = followed_count_all = 0
-    for i in x:
+    (
+        like_count,
+        comment_count,
+        like_comment_count,
+        reply_count,
+        avatar_greet_count,
+        followed_count,
+        like_count_all,
+        comment_count_all,
+        like_comment_count_all,
+        reply_count_all,
+        avatar_greet_count_all,
+        followed_count_all
+    ) = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
+    for i in x:
         user_num = i['actionItem']['usersCount']
         # match & case is in Python 3.10
         if i['type'] == "LIKE_PERSONAL_UPDATE":
             like_count_all += user_num
-            # with open('like_count_all.txt', 'a', encoding="utf8") as f:
-            #     f.write(str(like_count_all) + "\n")
         elif i['type'] == "COMMENT_PERSONAL_UPDATE":
             comment_count_all += user_num
         elif i['type'] == "LIKE_PERSONAL_UPDATE_COMMENT":
@@ -93,7 +52,6 @@ def summarize_notifications(path):
         # see README.md->Appendices for more data like CURIOSITY_ANSWER_REACTION
 
         for user in i['actionItem']['users']:
-            # print(user['username'])
             if user['username'] not in users_all:
                 users_all[user['username']] = {
                     'screenName': user['screenName'],
@@ -101,12 +59,13 @@ def summarize_notifications(path):
                 }
             else:
                 users_all[user['username']]['count'] += 1
+
             if i['type'] not in users_all[user['username']]:
                 users_all[user['username']][i['type']] = 1
             else:
                 users_all[user['username']][i['type']] += 1
 
-        if datetime.strptime(i['updatedAt'], "%Y-%m-%dT%X.%fZ").astimezone(GMT8()).year == (cur_year-1):
+        if datetime.strptime(i['updatedAt'], "%Y-%m-%dT%X.%fZ").astimezone(GMT8()).year == (CURR_YEAR-1):
             if i['type'] == "LIKE_PERSONAL_UPDATE":
                 like_count += user_num
             elif i['type'] == "COMMENT_PERSONAL_UPDATE":
@@ -121,7 +80,6 @@ def summarize_notifications(path):
                 followed_count += user_num
 
             for user in i['actionItem']['users']:
-                # print(user['username'])
                 if user['username'] not in users:
                     users[user['username']] = {
                         'screenName': user['screenName'],
@@ -159,31 +117,40 @@ def summarize_notifications(path):
 
     print("")
     print("Your likes and comments are \033[4mNOT\033[0m included.")
-    print("Generated at", datetime.now(GMT8()))
+    print("Generated at", CURR_TIME)
     print("")
 
 
 def summarize_posts(path):
     x = read_file(path)
 
-    post_count = [0]*(cur_year-base_year+1)
+    post_count = [0] * (CURR_YEAR-BASE_YEAR + 1)
     topics = {}
     topics_all = {}
-    like_count = comment_count = repost_count = share_count = pic_count = 0
-    like_count_all = comment_count_all = repost_count_all = share_count_all = pic_count_all = 0
-    # print(datetime.strptime(x[0]['createdAt'], "%Y-%m-%dT%X.%fZ")) # '%Y-%m-%dT%H:%M:%S.%fZ'
+    (
+        like_count,
+        comment_count,
+        repost_count,
+        share_count,
+        pic_count,
+        like_count_all,
+        comment_count_all,
+        repost_count_all,
+        share_count_all,
+        pic_count_all
+    ) = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+
     for i in x:
 
         post_count[datetime.strptime(
-            i['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(GMT8()).year - base_year] += 1
+            i['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(GMT8()).year - BASE_YEAR] += 1
 
         like_count_all += i['likeCount']
-        # with open('like_count_all.txt', 'a', encoding="utf8") as f:
-        #     f.write(str(like_count_all) + "\n")
         comment_count_all += i['commentCount']
         repost_count_all += i['repostCount']
         share_count_all += i['shareCount']
         pic_count_all += len(i['pictures'])
+
         if 'topic' in i and i['topic'] != None:
             if i['topic']['id'] not in topics_all:
                 topics_all[i['topic']['id']] = {
@@ -192,12 +159,15 @@ def summarize_posts(path):
                 }
             else:
                 topics_all[i['topic']['id']]['count'] += 1
-        if datetime.strptime(i['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(GMT8()).year == (cur_year-1):
+
+        if datetime.strptime(i['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(GMT8()).year == (CURR_YEAR-1):
+
             like_count += i['likeCount']
             comment_count += i['commentCount']
             repost_count += i['repostCount']
             share_count += i['shareCount']
             pic_count += len(i['pictures'])
+
             if 'topic' in i and i['topic'] != None:
                 if i['topic']['id'] not in topics:
                     topics[i['topic']['id']] = {
@@ -206,19 +176,23 @@ def summarize_posts(path):
                     }
                 else:
                     topics[i['topic']['id']]['count'] += 1
-            # TODO: post time in a day
+            # TODO: post time in a day, priority: low
 
     print("\n")
-    print("In \033[34m%d\033[0m:" % (cur_year-1))
-    print("You've posted \033[4;33m", post_count[cur_year-base_year-1],
+    print("In \033[34m%d\033[0m:" % (CURR_YEAR-1))
+    print("You've posted \033[4;33m", post_count[CURR_YEAR-BASE_YEAR-1],
           "\033[0m post(s) including \033[4;33m", pic_count, "\033[0m picture(s)", sep='')
-    if post_count[cur_year-base_year-2] != 0:
-        rate = post_count[cur_year-base_year-1] * \
-            100 / post_count[cur_year-base_year-2]
+
+    if post_count[CURR_YEAR-BASE_YEAR-2] != 0:
+        rate = post_count[CURR_YEAR-BASE_YEAR-1] * \
+            100 / post_count[CURR_YEAR-BASE_YEAR-2]
         print("Which is \033[4;33m", "%.2f" %
               (rate), "%\033[0m of last year's", sep='')
-    print("Received \033[4;33m%d\033[0m like(s) and \033[4;33m%d\033[0m comment(s)" % (like_count, comment_count))
-    print("Get \033[4;33m%d\033[0m repost(s) and \033[4;33m%d\033[0m share(s)\n" % (repost_count, share_count))
+
+    print("Received \033[4;33m%d\033[0m like(s) and \033[4;33m%d\033[0m comment(s)" % (
+        like_count, comment_count))
+    print("Get \033[4;33m%d\033[0m repost(s) and \033[4;33m%d\033[0m share(s)\n" % (
+        repost_count, share_count))
 
     most_topics = sorted(topics.items(), key=lambda x: x[1]['count'],  reverse=True)[
         :10]  # could change
@@ -233,6 +207,7 @@ def summarize_posts(path):
     # -------------------------------------------
 
     print("In \033[34mall time\033[0m:")
+
     print("You've posted \033[4;33m", sum(post_count), "\033[0m post(s) including \033[4;33m",
           pic_count_all, "\033[0m picture(s)", sep='')
     print("Received \033[4;33m%d\033[0m like(s) and \033[4;33m%d\033[0m comment(s)" % (
@@ -244,18 +219,19 @@ def summarize_posts(path):
         :10]  # could change
     print("\033[4;33m%d topics\033[0m you're most interested in:" %
           len(most_topics))
+
     for topic in most_topics:
         print('\033[33m{0:<12}\033[0m \t==>\t\033[33m{1:>3}\033[0m {2:>}'.format(
             topic[1]['content'], topic[1]['count'], "post(s)"), chr(12288))
 
     print("")
     print(
-        "Number of post(s) you've post \033[34m2016-%d\033[0m:\033[33m" % cur_year)
+        "Number of post(s) you've post \033[34m%d-%d\033[0m:\033[33m" % (BASE_YEAR, CURR_YEAR))
     print(post_count, "\033[0m\n")
 
     print("Deleted data is \033[4mNOT\033[0m included.")
     print("Your likes and comments are included.")
-    print("Generated at", datetime.now(GMT8()))
+    print("Generated at", CURR_TIME)
     print("")
 
 
