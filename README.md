@@ -80,48 +80,42 @@ You can also modified code in that file to get statistics you like.
 - json
 - requests
 
-可以直接运行下面命令构建环境
+注：`requests` 安装的两种方式，以下均在命令提示符(cmd)中进行。
+1.直接安装
 
 ```shell
 pip install -r requirements.txt
 ```
+2.下载安装
+或下载 `requests` 安装包，进入安装包所在路径，运行以下命令
 
-### 运行
+```shell
+pip install
+```
 
-登录 [即刻网页版](https://web.okjike.com/)， 按 `F12` 打开开发者工具。切换到 `网络`，过滤 `Fetch/XHR`，刷新页面，这时网络上会出现一些请求。
+### 初次运行，保存数据
 
-随便选一个 `graphql` 请求，在请求标头里找到 `cookie` 字段，复制值到 `cookies.txt` 文件。
+1. 进入开发者模式。在 [即刻网页版](https://web.okjike.com/)中登录自己的即刻账号，并进入个人主页。按 `F12` 打开开发者工具。切换到 `网络(Network)`，过滤 `Fetch/XHR`，刷新页面，此时下方会出现请求列表，罗列了请求的名称、状态等信息。
 
-选一个带有 `?username=...` 的请求，复制 `username` 从 `Request URL` 到 `src/crawl.py` 中 `main()` 中的 `id`。
+2. 获取cookie。在请求列表中，任选一个名称为 `graphql` 的请求，单击 `表头(Headers)`，找到 `cookie` 字段并复制全文，粘贴到 `Jike-crawl/cookies.txt`。
+
+3. 获取id。在请求列表中，任选一个名称为 `profile?username=...` 的请求，单击 `响应(Response)`，复制 `username` 字段:后的内容，粘贴到 `src/crawl.py`中 `main()` 函数里的 `user_id`。
 
 ![devtools](img/devtools_cn.png)
 
-然后就可以跑了。
-
-```shell
-python -u [python_file_path]
-```
-
-或者右击某个 `.py` 文件选择在终端中运行。
-
-#### 保存数据
-
-在 `src/crawl.py` 的 `main()` 函数中调用所需操作然后运行。
+4. 保存数据到本地。运行 `src/crawl.py` 。（打开 `src/crawl.py` ，右键选择在终端中运行；或输入命令 `python -u [python_file_path]`）
+`crawl.py` 文件中的 `main()` 函数将把消息列表和个人动态**追加**到 `data/notifications.json` 和 `data/post.json` 中。
 
 ```python
-    crawl_notifications(noti_path)
-    crawl_posts(post_path, user_id)
+    crawl_notifications(noti_path) #拉取消息列表
+    crawl_posts(post_path, user_id) #拉取个人动态
 ```
 
-`crawl_notifications` 把消息列表**追加**到 `noti_path` 里。
-
-`crawl_posts` 把用户 `user_id` 的动态**追加**到 `post_path` 里。
-
-注意，如果要覆盖文件请修改代码或手动操作。
+注：如需重新拉取请先清空上述两个文件中的内容。如不需要拉取消息或动态，可注释对应行代码。
 
 #### 数据分析
 
-必须先运行上述保存数据操作，后才可以运行此程序。
+必须先运行 `crawl.py` 保存数据，方可进行数据分析。
 
 运行 `src/data_analysis.py`。
 
@@ -129,21 +123,20 @@ python -u [python_file_path]
 
 #### 删除动态
 
-必须先运行上述保存数据操作，后才可以运行此程序。
+必须先运行 `crawl.py` 保存数据，方可进行动态删除。
 
-此操作仅根据本地保存的数据进行删除。
+此操作仅可根据本地保存的数据进行删除。即在新发动态后，如果没有重新拉取，则无法删除。
 
-进入 `delete_posts.py` 修改在 `main()` 中的 `post_path` 到存有动态数据的 json 文件。
+1. 若想删除所有动态，请跳过此步。若想修改动态删除的时间范围，请打开 `src/delete_posts.py`将 `main()` 函数中的 `start_time`（开始时间）和 `end_time`（结束时间）修改为所需的日期与时间。
 
-按提示取消 `clear_all()` 函数中 DANGER ZONE 中的
+2. 将 `main()` 函数中 `post_path` 修改为储存在本地的`posts.json`的路径。
+
+3. 取消 `clear_all()` 函数中 DANGER ZONE 中的这行注释（按 `Ctrl` + `/` 或删掉这行前面的 `# `）。
 
 ```python
 # remove(id) # remove posts by id
 ```
-
-这行注释（在这行按 `Ctrl` + `/` 或删掉这行前面的 `# `）。
-
-运行 `delete_posts.py`。
+4. 运行 `delete_posts.py`。
 
 ## Appendices
 
