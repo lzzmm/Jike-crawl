@@ -1,3 +1,7 @@
+# -*- coding:utf8 -*-
+# create at: 2023-01-15T23:26:10Z+08:00
+# author:    lzzmm<2313681700@qq.com>
+
 import os
 import sys
 import json
@@ -54,7 +58,7 @@ cookies = {
 
 
 def refresh_cookies():
-    print("Token expired, trying to refresh cookies...")
+    print("accessToken expired, trying to refresh accessToken...")
 
     payload = {
         "operationName": "refreshToken",
@@ -69,6 +73,10 @@ def refresh_cookies():
         print(x)
     except requests.exceptions.ConnectionError as e:
         print("Connection error", e.args)
+        
+    if 'errors' in x.json() and x.json()["errors"][0]["extensions"]["code"] == "UNAUTHENTICATED":
+        print("Please copy latest cookie from DevTools of browser to ./cookies.txt!")
+        sys.exit(1)
 
     accessToken = x.json()["data"]["refreshToken"]["accessToken"]
     refreshToken = x.json()["data"]["refreshToken"]["refreshToken"]
@@ -116,41 +124,63 @@ def read_file(path, lines=None):
         return x
 
 
-def save_db(x):
+def save_pics(node):
+    """
+    save pictures in post
+    ---
+    args:
+    - node: json object with a list of pictures info to save
+    """
+    
+    pic_path = os.path.join(dir_path, "data/pics/", node["id"])
+    os.makedirs(pic_path, exist_ok=True)
+    
+    for pic in node["pictures"]:
+        picUrl = pic["picUrl"]
+        x = requests.get(picUrl)
+        count += 1
+        # with open (os.path.join(pic_path, str(count)), 'wb') as f:
+        with open (os.path.join(pic_path, picUrl.split("?")[0].split("/")[-1]), 'wb') as f:
+            f.write(x.content)
+            
+    print("Pictures saved at", pic_path)
+
+
+def save_db(node):
     """
     store data into mysql
     ---
     args: 
-    - x: json object
+    - node: json object
     """
     # TODO: store into db
-    print(x)
+    print(node)
 
 
-def save_csv(x, path):
+def save_csv(node, path):
     """
     store data into csv
     ---
     args: 
-    - x: json object
+    - node: json object
     - path: csv file path
     """
     # TODO: store into csv
-    print(x)
+    print(node)
 
 
-def save_json(x, path, mode, indent=None):
+def save_json(node, path, mode, indent=None):
     """
     save json object into json file
     ---
     args: 
-    - x: json object
+    - node: json object
     - path: json file path
     - mode: "a" for add, "w" for overwrite
     - indent: int, default: None
     """
     with open(path, mode, encoding="utf8") as f:
-        json.dump(x, f, ensure_ascii=False, indent=indent)
+        json.dump(node, f, ensure_ascii=False, indent=indent)
         f.write("\n")
 
 
