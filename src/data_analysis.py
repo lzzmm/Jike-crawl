@@ -65,7 +65,7 @@ def summarize_notifications(path):
             else:
                 users_all[user['username']][i['type']] += 1
 
-        if datetime.strptime(i['updatedAt'], "%Y-%m-%dT%X.%fZ").astimezone(GMT8()).year == (CURR_YEAR-1):
+        if datetime.strptime(i['updatedAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8()).year == (CURR_YEAR-1):
             if i['type'] == "LIKE_PERSONAL_UPDATE":
                 like_count += user_num
             elif i['type'] == "COMMENT_PERSONAL_UPDATE":
@@ -143,7 +143,7 @@ def summarize_posts(path):
     for i in x:
 
         post_count[datetime.strptime(
-            i['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(GMT8()).year - BASE_YEAR] += 1
+            i['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8()).year - BASE_YEAR] += 1
 
         like_count_all += i['likeCount']
         comment_count_all += i['commentCount']
@@ -160,7 +160,7 @@ def summarize_posts(path):
             else:
                 topics_all[i['topic']['id']]['count'] += 1
 
-        if datetime.strptime(i['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(GMT8()).year == (CURR_YEAR-1):
+        if datetime.strptime(i['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8()).year == (CURR_YEAR-1):
 
             like_count += i['likeCount']
             comment_count += i['commentCount']

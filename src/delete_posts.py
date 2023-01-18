@@ -6,8 +6,7 @@ from datetime import datetime, timedelta, tzinfo
 
 from utils import handle_errors, headers, cookies, UTC, GMT8
 
-BASE_TIME = datetime.strptime(
-    "2015-03-28T00:00:00.000Z", "%Y-%m-%dT%X.%fZ").astimezone(GMT8())  # Jike 1.0 online
+BASE_TIME = datetime(2015, 3, 28, tzinfo=GMT8())  # Jike 1.0 online
 CURR_TIME = datetime.now(GMT8())  # current time
 
 dir_path = os.path.dirname(os.path.dirname(__file__))
@@ -58,7 +57,7 @@ def clear(post_path, start_time, end_time):
             line = f.readline()
 
             time = datetime.strptime(
-                x['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(GMT8())
+                x['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8())
 
             if time < start_time or time > end_time:
                 continue
@@ -79,8 +78,8 @@ if __name__ == "__main__":
     post_path = os.path.join(dir_path, "data/posts.json")
 
     # class datetime.datetime(year, month, day, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, *, fold=0)
-    # start_time = datetime(2021, 12, 1, tzinfo=GMT8())
-    # end_time = datetime(2021, 12, 31, tzinfo=GMT8())
+    # start_time = datetime(2021, 1, 1, tzinfo=GMT8())
+    # end_time = datetime(2021, 1, 10, tzinfo=GMT8())
     # operate posts created during 2021/12/01 and 2021/12/31
 
     # class datetime.timedelta(days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0)

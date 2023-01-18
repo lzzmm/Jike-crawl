@@ -14,8 +14,7 @@ dir_path = os.path.dirname(os.path.dirname(__file__))
 url = "https://web-api.okjike.com/api/graphql"
 
 
-BASE_TIME = datetime.strptime(
-    "2015-03-28T00:00:00.000Z", "%Y-%m-%dT%X.%fZ").astimezone(GMT8())  # Jike 1.0 online
+BASE_TIME = datetime(2015, 3, 28, tzinfo=GMT8()) # Jike 1.0 online
 CURR_TIME = datetime.now(GMT8())  # current time
 
 
@@ -61,7 +60,7 @@ def proc_node(node, path, mode, start_time, end_time, end, record_count, record_
     - record_count_limit: limit number of records to be saved
     """
     time = datetime.strptime(
-        node['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(GMT8())
+        node['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(UTC())
 
     if time >= start_time and time <= end_time:
         save_json(node, path, mode)
@@ -202,15 +201,17 @@ if __name__ == "__main__":
     # start_time = datetime(2021, 1, 1, tzinfo=GMT8())
     # end_time = datetime(2021, 12, 31, tzinfo=GMT8())
 
-    start_time = BASE_TIME              # datetime
-    end_time = CURR_TIME                # datetime
-    notifications_record_limit = None   # int
-    posts_record_limit = None           # int
-
+    noti_start_time = BASE_TIME # datetime
+    noti_end_time = CURR_TIME   # datetime
+    noti_record_limit = None    # int
     crawl_notifications(
-        noti_path, "a", notifications_record_limit, start_time, end_time)
+        noti_path, "a", noti_record_limit, noti_start_time, noti_end_time)
+
+    post_start_time = BASE_TIME # datetime
+    post_end_time = CURR_TIME   # datetime
+    post_record_limit = None    # int
     crawl_posts(user_id, post_path, "a",
-                posts_record_limit, start_time, end_time)
+                post_record_limit, post_start_time, post_end_time)
 
     # goto "delete_posts.py" and manually enable remove()
     # clear(post_path)

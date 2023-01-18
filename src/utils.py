@@ -16,8 +16,11 @@ class UTC(tzinfo):
     def tzname(self, dt):
         return 'UTC'
 
-    def tzoffset(self, dt):
+    def dst(self, dt):
         return ZERO
+    
+    def fromutc(self, dt):
+        return dt
 
 
 class GMT8(tzinfo):
@@ -29,6 +32,9 @@ class GMT8(tzinfo):
 
     def dst(self, dt):
         return ZERO
+    
+    def fromutc(self, dt):
+        return dt + dt.utcoffset()
 
 
 dir_path = os.path.dirname(os.path.dirname(__file__))
