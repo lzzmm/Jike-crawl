@@ -68,7 +68,7 @@ def proc_node(node, path, mode, start_time, end_time, end, record_count, b_save_
         node['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(UTC())
 
     if time >= start_time and time <= end_time:
-        save_json(node, path, mode)
+        save_json(node, path, mode) # TODO: write to a temp file and at last concat 
         if b_save_pics and ("pictures" in node) and len(node["pictures"]) != 0:
             save_pics(node)
         record_count += 1
@@ -196,7 +196,7 @@ def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=N
 
 if __name__ == "__main__":
     noti_path = os.path.join(dir_path, "data/notifications.json")
-    post_path = os.path.join(dir_path, "data/posts_test.json")
+    post_path = os.path.join(dir_path, "data/posts.json")
 
     ##################################################
     # ATTENTION: Replace with your own Jike user id. #

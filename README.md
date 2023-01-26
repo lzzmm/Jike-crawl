@@ -8,7 +8,7 @@
 
 ## Jike-crawl (EN)
 
-Crawl posts, notifications, and maybe collections(undone) on Jike and save them in `csv file`(undone) / `json file` / `MySQL`(undone) before you delete your Jike account. Pictures in posts will be downloaded.
+Crawl posts, notifications, and maybe collections(undone) on Jike and save them in `csv file`(undone) / `json file` / `MySQL`(undone) before you delete your Jike account. Pictures in posts can be downloaded, too.
 
 Delete posts in a specific time range or by default, all time.
 
@@ -57,6 +57,8 @@ python -u [python_file_path]
 Choose operations and set `user_id` in `main()` of `src/crawl.py`.
 
 If you want to **save pictures** in posts you can set `b_save_pics` in `main()` of `src/crawl.py` `True` (default is `False`).
+
+If enabled `b_save_pics`, pictures will be stroed TODO:
 
 You can crawl data in specific time range by modifiding `start_time` and `end_time`.
 
