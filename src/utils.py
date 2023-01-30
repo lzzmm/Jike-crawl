@@ -88,14 +88,22 @@ def refresh_cookies():
         print("Token updated.")
 
 
-def handle_errors(x):
+def handle_errors(x, halt=True):
+    """
+    handle http errors
+    ---
+    args:
+    - x: the http response
+    - halt: bool, if true, stop program when unexpected error occurs
+    """
     print(x.json()["errors"][0]["extensions"]["code"])
 
     if x.json()["errors"][0]["extensions"]["code"] == "UNAUTHENTICATED":
         refresh_cookies()
     else:
         print("Unexpected error: ", x.json()["errors"][0]["extensions"])
-        sys.exit(1)
+        if halt:
+            sys.exit(1)
 
 
 def read_file(path, lines=None):
@@ -105,6 +113,7 @@ def read_file(path, lines=None):
     args:
     - path: path to json file
     - lines: lines to read
+    
     return: json object list
     """
     with open(path, 'r', encoding="utf8") as f:

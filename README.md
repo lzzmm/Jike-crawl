@@ -1,5 +1,7 @@
 # Jike-crawl
 
+## TEMPORARILY NO TIME TO MAINTAIN
+
 ## TODOs
 
 1. Update README.md
