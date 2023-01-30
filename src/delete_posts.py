@@ -45,14 +45,14 @@ def remove(id):
         print("Connection error", e.args)
 
     if ('errors' in x.json()):
-        handle_errors(x)
+        handle_errors(x, halt=False)
     return x
 
 
 def clear(post_path, start_time, end_time):
     # DONE: clear all posts in time range
     # Priority: low, because you can easily delete your account directly
-    # TODO: time range or other condition
+    # DONE: time range or other condition
     with open(post_path, 'r', encoding="utf8") as f:
         count = 0
         line = f.readline()
@@ -83,7 +83,7 @@ if __name__ == "__main__":
 
     # class datetime.datetime(year, month, day, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, *, fold=0)
     # start_time = datetime(2021, 1, 1, tzinfo=GMT8())
-    # end_time = datetime(2021, 1, 10, tzinfo=GMT8())
+    # end_time = datetime(2021, 12, 31, tzinfo=GMT8())
     # operate posts created during 2021/12/01 and 2021/12/31
 
     # class datetime.timedelta(days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0)
