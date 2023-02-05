@@ -2,11 +2,26 @@
 
 ## TEMPORARILY NO TIME TO MAINTAIN
 
+## PREFER RUNNING VIA `src/main.ipynb`
+
 ## TODOs
 
-1. Update README.md
+1. Fix
+
+   ```json
+   "pinned": {
+        "personalUpdate": true,
+        "__typename": "PinnedInfo"
+    }
+    ```
+
+    sort all time and save
+    get that PinnedInfo then delete
+
 2. Add new data on the top of old files
 3. Reconstruct project and complete comments
+
+[中文](https://github.com/lzzmm/Jike-crawl#%E5%88%A0%E5%8F%B7%E8%B7%91%E8%B7%AF%E4%B8%AD%E6%96%87)
 
 ## Jike-crawl (EN)
 
@@ -48,19 +63,13 @@ Select one `graphql` request and copy value of `cookie` from `Request headers` i
 
 ![devtools](img/devtools.png)
 
-Then run.
-
-```shell
-python -u [python_file_path]
-```
-
 #### Crawl
 
 Choose operations and set `user_id` in `main()` of `src/crawl.py`.
 
 If you want to **save pictures** in posts you can set `b_save_pics` in `main()` of `src/crawl.py` `True` (default is `False`).
 
-If enabled `b_save_pics`, pictures will be stroed TODO:
+If enabled `b_save_pics`, pictures will be stored TODO:
 
 You can crawl data in specific time range by modifiding `start_time` and `end_time`.
 
@@ -164,13 +173,13 @@ run `delete_posts.py`。
 
 ### 初次运行，保存数据
 
-1. 进入开发者模式。在 [即刻网页版](https://web.okjike.com/)中登录自己的即刻账号，并进入个人主页。按 `F12` 打开开发者工具。切换到 `网络(Network)`，过滤 `Fetch/XHR`，刷新页面，此时下方会出现请求列表，罗列了请求的名称、状态等信息。
+1. 进入开发者模式。在 [即刻网页版](https://web.okjike.com/) 中登录自己的即刻账号，并进入个人主页。按 `F12` 打开开发者工具。切换到 `网络(Network)`，过滤 `Fetch/XHR`，刷新页面，此时下方会出现请求列表，罗列了请求的名称、状态等信息。
 
 2. 获取cookie。在请求列表中，任选一个名称为 `graphql` 的请求，单击 `标头(Headers)`，找到 `cookie` 字段并复制全文，粘贴到 `Jike-crawl/cookies.txt`。
 
-3. 获取id。在请求列表中，任选一个名称为 `profile?username=...` 的请求，单击 `响应(Response)`，复制 `username` 字段:后的内容，粘贴到 `src/crawl.py`中 `main()` 函数里的 `user_id`。
-
     ![devtools](img/devtools_cn.png)
+
+3. 获取id。在请求列表中，任选一个名称为 `profile?username=...` 的请求，单击 `响应(Response)`，复制 `username` 字段:后的内容，粘贴到 `src/crawl.py`中 `main()` 函数里的 `user_id`。
 
 4. 保存数据到本地。
 
@@ -237,14 +246,18 @@ run `delete_posts.py`。
 
 此操作仅可根据本地保存的数据进行删除。即在新发动态后，如果没有重新拉取，则无法删除。
 
-1. 若想删除所有动态，请跳过此步。若想修改动态删除的时间范围，请打开 `src/delete_posts.py`将 `main()` 函数中的 `start_time`（开始时间）和 `end_time`（结束时间）修改为所需的日期(也可详细设定时间）。
+1. 若想删除所有动态，请跳过此步。若想修改动态删除的时间范围，请打开 `src/delete_posts.py` 将 `main()` 函数中的 `start_time`（开始时间）和 `end_time`（结束时间）修改为所需的日期(也可详细设定时间）。
 
-2. 将 `main()` 函数中 `post_path` 修改为储存在本地的`posts.json`的路径。
+2. 将 `main()` 函数中 `post_path` 修改为储存在本地的 `posts.json` 的路径。
 
 3. 取消 `clear()` 函数中 DANGER ZONE 中的这行注释（按 `Ctrl` + `/` 或删掉这行前面的 `# `）。
 
     ```python
-    # remove(id) # remove posts by id
+    ################# DANGER ZONE ##################
+    ################################################
+    # uncomment next line to remove all your posts #
+    # remove(id) # remove posts by id              #
+    ################################################
     ```
 
 4. 运行 `delete_posts.py`。

@@ -49,7 +49,7 @@ def remove(id):
     return x
 
 
-def clear(post_path, start_time, end_time):
+def clear(post_path, start_time, end_time, limit=None):
     # DONE: clear all posts in time range
     # Priority: low, because you can easily delete your account directly
     # DONE: time range or other condition
@@ -63,8 +63,11 @@ def clear(post_path, start_time, end_time):
             time = datetime.strptime(
                 x['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8())
 
-            if time < start_time or time > end_time:
+            if time > end_time:
                 continue
+            
+            if (limit != None and count >= limit) or time < start_time:
+                break
 
             count += 1
             id = x['id']
@@ -81,18 +84,19 @@ def clear(post_path, start_time, end_time):
 if __name__ == "__main__":
     post_path = os.path.join(dir_path, "data/posts.json")
 
+    # operate posts created during 2021/12/01 and 2021/12/31
     # class datetime.datetime(year, month, day, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, *, fold=0)
     # start_time = datetime(2021, 1, 1, tzinfo=GMT8())
     # end_time = datetime(2021, 12, 31, tzinfo=GMT8())
-    # operate posts created during 2021/12/01 and 2021/12/31
 
+    # operate posts created before 30 days ago
     # class datetime.timedelta(days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0)
     # time_delta = timedelta(days=30)
     # end_time = CURR_TIME - time_delta
-    # operate posts created before 30 days ago
 
+    # operate all posts
     start_time = BASE_TIME  # datetime
     end_time = CURR_TIME   # datetime
-    # operate all posts
+    limit = None  # int or None
 
-    clear(post_path, start_time, end_time)
+    clear(post_path, start_time, end_time, limit)
