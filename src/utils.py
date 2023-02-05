@@ -146,7 +146,7 @@ def save_pics(node):
     for pic in node["pictures"]:
         picUrl = pic["picUrl"]
         x = requests.get(picUrl)
-        count += 1
+        # count += 1
         # with open (os.path.join(pic_path, str(count)), 'wb') as f:
         with open (os.path.join(pic_path, picUrl.split("?")[0].split("/")[-1]), 'wb') as f:
             f.write(x.content)
