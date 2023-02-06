@@ -12,6 +12,7 @@ from datetime import datetime, timedelta, tzinfo
 ZERO = timedelta(0)
 HOUR = timedelta(hours=1)
 
+
 class UTC(tzinfo):
     def utcoffset(self, dt):
         return ZERO
@@ -21,7 +22,7 @@ class UTC(tzinfo):
 
     def dst(self, dt):
         return ZERO
-    
+
     def fromutc(self, dt):
         return dt
 
@@ -35,7 +36,7 @@ class GMT8(tzinfo):
 
     def dst(self, dt):
         return ZERO
-    
+
     def fromutc(self, dt):
         return dt + dt.utcoffset()
 
@@ -72,7 +73,7 @@ def refresh_cookies():
         print(x)
     except requests.exceptions.ConnectionError as e:
         print("Connection error", e.args)
-        
+
     if 'errors' in x.json() and x.json()["errors"][0]["extensions"]["code"] == "UNAUTHENTICATED":
         print("Please copy latest cookie from DevTools of browser to ./cookies.txt!")
         sys.exit(1)
@@ -106,6 +107,25 @@ def handle_errors(x, halt=True):
             sys.exit(1)
 
 
+def sort_nodes(path):
+    """
+    Sort nodes in time order, from later to earlier
+    ---
+    args:
+    - path: path to json file
+    """
+
+    nodes = read_file(path)
+
+    nodes.sort(key=lambda x: x['createdAt'],  reverse=True)
+
+    with open(path, "w", encoding="utf8") as f:
+        for node in nodes:
+            save_json(node, path, "a")
+    
+    print("Sorted.")
+
+
 def read_file(path, lines=None):
     """
     read multi-object json file
@@ -113,7 +133,7 @@ def read_file(path, lines=None):
     args:
     - path: path to json file
     - lines: lines to read
-    
+
     return: json object list
     """
     with open(path, 'r', encoding="utf8") as f:
@@ -121,7 +141,7 @@ def read_file(path, lines=None):
         x = []
         line = f.readline()
 
-        while (line):
+        while(line):
             x.append(json.loads(line))
             count += 1
             line = f.readline()
@@ -139,18 +159,18 @@ def save_pics(node):
     args:
     - node: json object with a list of pictures info to save
     """
-    
+
     pic_path = os.path.join(dir_path, "data/pics/", node["id"])
     os.makedirs(pic_path, exist_ok=True)
-    
+
     for pic in node["pictures"]:
         picUrl = pic["picUrl"]
         x = requests.get(picUrl)
         # count += 1
         # with open (os.path.join(pic_path, str(count)), 'wb') as f:
-        with open (os.path.join(pic_path, picUrl.split("?")[0].split("/")[-1]), 'wb') as f:
+        with open(os.path.join(pic_path, picUrl.split("?")[0].split("/")[-1]), 'wb') as f:
             f.write(x.content)
-            
+
     print("Pictures saved at", pic_path)
 
 

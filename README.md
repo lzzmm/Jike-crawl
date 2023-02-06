@@ -4,26 +4,9 @@
 
 ## PREFER RUNNING VIA `src/main.ipynb`
 
-## TODOs
-
-1. Fix
-
-   ```json
-   "pinned": {
-        "personalUpdate": true,
-        "__typename": "PinnedInfo"
-    }
-    ```
-
-    sort all time and save
-    get that PinnedInfo then delete
-
-2. Add new data on the top of old files
-3. Reconstruct project and complete comments
-
-[中文](https://github.com/lzzmm/Jike-crawl#%E5%88%A0%E5%8F%B7%E8%B7%91%E8%B7%AF%E4%B8%AD%E6%96%87)
-
 ## Jike-crawl (EN)
+
+[中文](##删号跑路（中文）)
 
 Crawl posts, notifications, and maybe collections(undone) on Jike and save them in `csv file`(undone) / `json file` / `MySQL`(undone) before you delete your Jike account. Pictures in posts can be downloaded, too.
 
@@ -140,6 +123,10 @@ Follow instruction in `clear()` uncomment this line in DANGER ZONE
 run `delete_posts.py`。
 
 ## 删号跑路（中文）
+
+[EN](##Jike-crawl-(EN))
+
+### 建议通过 `src/main.ipynb` 运行
 
 在注销即刻账号跑路之前保存自己的动态和消息。
 

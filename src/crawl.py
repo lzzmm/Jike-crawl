@@ -8,7 +8,7 @@ import json
 import requests
 from datetime import datetime, timedelta, tzinfo
 
-from utils import handle_errors, save_json, save_pics, headers, cookies, UTC, GMT8
+from utils import handle_errors, sort_nodes, save_json, save_pics, headers, cookies, UTC, GMT8
 from delete_posts import clear
 
 
@@ -68,12 +68,12 @@ def proc_node(node, path, mode, start_time, end_time, end, record_count, b_save_
         node['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(UTC())
 
     if time >= start_time and time <= end_time:
-        save_json(node, path, mode) # TODO: write to a temp file and at last concat 
+        save_json(node, path, mode)
         if b_save_pics and ("pictures" in node) and len(node["pictures"]) != 0:
             save_pics(node)
         record_count += 1
 
-    if (record_count_limit != None and record_count >= record_count_limit) or time < start_time:
+    if (record_count_limit != None and record_count >= record_count_limit) or (time < start_time):
         end = True
 
     return end, record_count
@@ -135,7 +135,7 @@ def crawl_notifications(path, mode="a", b_save_pics=False, record_count_limit=No
     print(record_count, "record(s) saved.")
 
 
-def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=None, start_time=BASE_TIME, end_time=CURR_TIME):
+def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=None, start_time=BASE_TIME, end_time=CURR_TIME, update=True):
     """
     loop and crawl all notifications and save into database/file
     ---
@@ -156,8 +156,27 @@ def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=N
     }
 
     end = False
+    add_data = False
+    is_first_node = True
+    first_node_inserted = False
     request_count = 0
     record_count = 0
+    origin_path = path
+    first_node = {}
+
+    if update == True:
+        with open(post_path, 'r', encoding="utf8") as f:
+            line = f.readline()
+            try:
+                x = json.loads(line)
+                if 'createdAt' in x:
+                    start_time = datetime.strptime(
+                        x['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8())
+                    print("Read record(s) from", start_time)
+                    path = os.path.join(dir_path, "data/temp-new-data.json")
+                    add_data = True
+            except Exception:
+                print("Nothing in original file.")
 
     x = crawl(url, cookies, headers, payload)
 
@@ -168,6 +187,18 @@ def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=N
     print(request_count, loadMoreKey)
 
     for node in x.json()["data"]["userProfile"]["feeds"]["nodes"]:
+        if is_first_node == True:
+            first_node = node
+            is_first_node = False
+            continue
+        elif (not first_node_inserted) and datetime.strptime(
+                node['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(UTC()) < datetime.strptime(
+                first_node['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(UTC()):
+            end, record_count = proc_node(first_node,
+                                          path, mode, start_time, end_time, end, record_count, b_save_pics, record_count_limit)
+            first_node_inserted = True
+            if end == True:
+                break
         end, record_count = proc_node(node,
                                       path, mode, start_time, end_time, end, record_count, b_save_pics, record_count_limit)
         if end == True:
@@ -190,6 +221,15 @@ def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=N
             if end == True:
                 break
 
+    if add_data == True:
+
+        with open(origin_path, 'r', encoding='utf-8') as ori_f:
+            with open(path, 'a', encoding='utf-8') as new_f:
+                new_f.write(ori_f.read())
+
+        os.remove(origin_path)
+        os.rename(path, origin_path)
+
     print(request_count, "request(s) was(were) sent.")
     print(record_count, "record(s) saved.")
 
@@ -203,29 +243,30 @@ if __name__ == "__main__":
     user_id = "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC"
     ##################################################
 
-    b_save_pics = False # Bool
+    b_save_pics = False  # Bool
 
+    # operate posts created during 2021/12/01 and 2021/12/31
     # class datetime.datetime(year, month, day, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, *, fold=0)
     # start_time = datetime(2021, 1, 1, tzinfo=GMT8())
     # end_time = datetime(2021, 1, 10, tzinfo=GMT8())
-    # operate posts created during 2021/12/01 and 2021/12/31
 
+    # operate posts created before 30 days ago
     # class datetime.timedelta(days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0)
     # time_delta = timedelta(days=30)
     # end_time = CURR_TIME - time_delta
-    # operate posts created before 30 days ago
 
     noti_start_time = BASE_TIME  # datetime
     noti_end_time = CURR_TIME   # datetime
     noti_record_limit = None    # int or None
+
     # crawl_notifications(
     # noti_path, "a", False, noti_record_limit, noti_start_time, noti_end_time)
 
     post_start_time = BASE_TIME  # datetime
     post_end_time = CURR_TIME   # datetime
     post_record_limit = None    # int or None
+
+    sort_nodes(post_path)
+
     crawl_posts(user_id, post_path, "a", b_save_pics,
                 post_record_limit, post_start_time, post_end_time)
-
-    # goto "delete_posts.py" and manually enable remove()
-    # clear(post_path)
