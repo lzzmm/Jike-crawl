@@ -6,7 +6,7 @@
 
 ## Jike-crawl (EN)
 
-[中文](##删号跑路（中文）)
+[中文](#删号跑路中文)
 
 Crawl posts, notifications, and maybe collections(undone) on Jike and save them in `csv file`(undone) / `json file` / `MySQL`(undone) before you delete your Jike account. Pictures in posts can be downloaded, too.
 
@@ -124,7 +124,7 @@ run `delete_posts.py`。
 
 ## 删号跑路（中文）
 
-[EN](##Jike-crawl-(EN))
+[EN](#jike-crawl-en)
 
 ### 建议通过 `src/main.ipynb` 运行
 
