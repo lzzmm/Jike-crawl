@@ -41,6 +41,10 @@ class GMT8(tzinfo):
         return dt + dt.utcoffset()
 
 
+BASE_TIME = datetime(2015, 3, 28, tzinfo=GMT8())  # Jike 1.0 online
+CURR_TIME = datetime.now(GMT8())  # current time
+
+
 dir_path = os.path.dirname(os.path.dirname(__file__))
 
 url = "https://web-api.okjike.com/api/graphql"
@@ -114,16 +118,18 @@ def sort_nodes(path):
     args:
     - path: path to json file
     """
+    try:
+        nodes = read_file(path)
 
-    nodes = read_file(path)
+        nodes.sort(key=lambda x: x['createdAt'],  reverse=True)
 
-    nodes.sort(key=lambda x: x['createdAt'],  reverse=True)
+        with open(path, "w", encoding="utf8") as f:
+            for node in nodes:
+                save_json(node, path, "a")
 
-    with open(path, "w", encoding="utf8") as f:
-        for node in nodes:
-            save_json(node, path, "a")
-    
-    print("Sorted.")
+        print("Sorted.")
+    except Exception:
+        print("Not sorted.")
 
 
 def read_file(path, lines=None):
@@ -136,20 +142,23 @@ def read_file(path, lines=None):
 
     return: json object list
     """
-    with open(path, 'r', encoding="utf8") as f:
-        count = 0
-        x = []
-        line = f.readline()
-
-        while(line):
-            x.append(json.loads(line))
-            count += 1
+    try:
+        with open(path, 'r', encoding="utf8") as f:
+            count = 0
+            x = []
             line = f.readline()
-            if lines and count == lines:
-                break
 
-        print("Read", count, "line(s) from", path)
-        return x
+            while(line):
+                x.append(json.loads(line))
+                count += 1
+                line = f.readline()
+                if lines and count == lines:
+                    break
+
+            print("Read", count, "line(s) from", path)
+            return x
+    except Exception:
+        print("Failed reading file.")
 
 
 def save_pics(node):
@@ -210,6 +219,134 @@ def save_json(node, path, mode, indent=None):
     with open(path, mode, encoding="utf8") as f:
         json.dump(node, f, ensure_ascii=False, indent=indent)
         f.write("\n")
+
+
+def crawl(url, cookies, headers, payload):
+    """
+    crawl data
+    ---
+    args: 
+    - url
+    - cookies
+    - headers
+    - payload
+    - return: response
+    """
+    try:
+        x = requests.post(url, cookies=cookies,
+                          headers=headers,
+                          data=json.dumps(payload))
+        print(x)
+    except requests.exceptions.ConnectionError as e:
+        print("Connection error", e.args)
+
+    # The "has_key" method has been removed in Python 3
+    while 'errors' in x.json():
+        handle_errors(x)
+        x = crawl(url, cookies, headers, payload)
+
+    return x
+
+
+# haven't finished yet, but works well
+def crawl_posts_fn(user_id, proc_node_fn, op_payload=None, record_count_limit=None, start_time=BASE_TIME, end_time=CURR_TIME, update=False):
+    """
+    loop and crawl posts from user_id and do something TODO: rewrite
+    ---
+    args:
+    - user_id: Jike user id
+    - proc_node_fn: function to process the crawled post
+    - record_count_limit: number of records to crawl, default no limit
+    - start_time: datetime object
+    - end_time: datetime object, later than start_time
+    """
+
+    payload = {
+        "operationName": "UserFeeds",
+        "query": open(os.path.join(dir_path, "query/query_user_feeds.txt")).read(),
+        "variables": {
+            "username": user_id
+        }
+    }
+
+    end = False
+    add_data = False
+    is_first_node = True
+    first_node_inserted = False
+    request_count = 0
+    record_count = 0
+    first_node = {}
+    
+    while True: # pseudo-do-while in python
+
+        x = crawl(url, cookies, headers, payload)
+        request_count += 1
+
+        loadMoreKey = x.json()[
+            "data"]["userProfile"]["feeds"]["pageInfo"]["loadMoreKey"]
+        payload["variables"]["loadMoreKey"] = loadMoreKey
+        print(request_count, loadMoreKey)
+
+        for node in x.json()["data"]["userProfile"]["feeds"]["nodes"]:
+            end, record_count = proc_node_fn(
+                node, end, record_count, op_post, op_payload, start_time, end_time, record_count_limit)
+            if end == True:
+                break
+        
+                
+        if end == True or loadMoreKey == None:
+            break
+
+    print(request_count, "request(s) was(were) sent.")
+    print(record_count, "record(s) operated.")
+
+
+def proc_node_fn(node, end, record_count, op, op_payload=None, start_time=BASE_TIME, end_time=CURR_TIME, record_count_limit=None):
+    """
+    process notification/post TODO: rewrite
+    ---
+    args:
+    - node: node object to process
+    - path: path to save object
+    - mode: mode to save object
+    - start_time: start time of object to be saved
+    - end_time: end time of object to be saved
+    - end: bool, end of save, so stop request
+    - record_count: number of records saved
+    - record_count_limit: limit number of records to be saved
+    """
+
+    time = datetime.strptime(
+        node['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(UTC())
+
+    if time >= start_time and time <= end_time:
+        op_payload["variables"]["id"] = node["id"]
+        op(op_payload)
+        print(node["content"], time)
+        record_count += 1
+
+    if (record_count_limit != None and record_count >= record_count_limit) or (time < start_time):
+        end = True
+
+    return end, record_count
+
+
+def op_post(payload):
+    # TODO: optimize code structure
+
+    assert payload is not None
+
+    try:
+        x = requests.post(url, cookies=cookies,
+                          headers=headers,
+                          data=json.dumps(payload))
+        print(x, x.json())
+    except requests.exceptions.ConnectionError as e:
+        print("Connection error", e.args)
+
+    if ('errors' in x.json()):
+        handle_errors(x, halt=False)
+    return x
 
 
 # Not used yet...

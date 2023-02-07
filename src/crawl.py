@@ -8,45 +8,13 @@ import json
 import requests
 from datetime import datetime, timedelta, tzinfo
 
-from utils import handle_errors, sort_nodes, save_json, save_pics, headers, cookies, UTC, GMT8
-from delete_posts import clear
+from utils import *
 
 
 dir_path = os.path.dirname(os.path.dirname(__file__))
 
 
 url = "https://web-api.okjike.com/api/graphql"
-
-
-BASE_TIME = datetime(2015, 3, 28, tzinfo=GMT8())  # Jike 1.0 online
-CURR_TIME = datetime.now(GMT8())  # current time
-
-
-def crawl(url, cookies, headers, payload):
-    """
-    crawl data
-    ---
-    args: 
-    - url
-    - cookies
-    - headers
-    - payload
-    - return: response
-    """
-    try:
-        x = requests.post(url, cookies=cookies,
-                          headers=headers,
-                          data=json.dumps(payload))
-        print(x)
-    except requests.exceptions.ConnectionError as e:
-        print("Connection error", e.args)
-
-    # The "has_key" method has been removed in Python 3
-    while 'errors' in x.json():
-        handle_errors(x)
-        x = crawl(url, cookies, headers, payload)
-
-    return x
 
 
 def proc_node(node, path, mode, start_time, end_time, end, record_count, b_save_pics=False, record_count_limit=None):
@@ -67,6 +35,7 @@ def proc_node(node, path, mode, start_time, end_time, end, record_count, b_save_
     time = datetime.strptime(
         node['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(UTC())
 
+    # TODO: this should not be here but should be outside this function
     if time >= start_time and time <= end_time:
         save_json(node, path, mode)
         if b_save_pics and ("pictures" in node) and len(node["pictures"]) != 0:
@@ -82,6 +51,7 @@ def proc_node(node, path, mode, start_time, end_time, end, record_count, b_save_
 def crawl_notifications(path, mode="a", b_save_pics=False, record_count_limit=None, start_time=BASE_TIME, end_time=CURR_TIME):
     """
     loop and crawl all/num notifications from start_time to end_time and save into database/file
+    TODO: Incremental update like "crawl_posts"
     ---
     args:
     - path: file path 
@@ -100,36 +70,24 @@ def crawl_notifications(path, mode="a", b_save_pics=False, record_count_limit=No
     record_count = 0
     end = False
 
-    x = crawl(url, cookies, headers, payload)
-
-    request_count += 1
-    loadMoreKey = x.json()[
-        "data"]["viewer"]["notifications"]["pageInfo"]["loadMoreKey"]
-    print(request_count, loadMoreKey)
-
-    for node in x.json()["data"]["viewer"]["notifications"]["nodes"]:
-        end, record_count = proc_node(node,
-                                      path, mode, start_time, end_time, end, record_count, b_save_pics, record_count_limit)
-        if end == True:
-            break
-
-    while end != True and loadMoreKey != None:  # 'hasNextPage': True
-
-        request_count += 1
-        payload["variables"]["loadMoreKey"] = loadMoreKey
+    while True:
 
         x = crawl(url, cookies, headers, payload)
+        request_count += 1
 
         loadMoreKey = x.json()[
             "data"]["viewer"]["notifications"]["pageInfo"]["loadMoreKey"]
+        payload["variables"]["loadMoreKey"] = loadMoreKey
         print(request_count, loadMoreKey)
 
-        # if x.json()["data"]["viewer"]["notifications"]["nodes"]:
         for node in x.json()["data"]["viewer"]["notifications"]["nodes"]:
             end, record_count = proc_node(
                 node, path, mode, start_time, end_time, end, record_count, b_save_pics, record_count_limit)
             if end == True:
                 break
+
+        if end == True or loadMoreKey == None:
+            break
 
     print(request_count, "request(s) was(were) sent.")
     print(record_count, "record(s) saved.")
@@ -138,6 +96,7 @@ def crawl_notifications(path, mode="a", b_save_pics=False, record_count_limit=No
 def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=None, start_time=BASE_TIME, end_time=CURR_TIME, update=True):
     """
     loop and crawl all notifications and save into database/file
+    TODO: function too long! rewrite it!
     ---
     args:
     - path: file path 
@@ -165,9 +124,9 @@ def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=N
     first_node = {}
 
     if update == True:
-        with open(post_path, 'r', encoding="utf8") as f:
-            line = f.readline()
-            try:
+        try:
+            with open(post_path, 'r', encoding="utf8") as f:
+                line = f.readline()
                 x = json.loads(line)
                 if 'createdAt' in x:
                     start_time = datetime.strptime(
@@ -175,51 +134,42 @@ def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=N
                     print("Read record(s) from", start_time)
                     path = os.path.join(dir_path, "data/temp-new-data.json")
                     add_data = True
-            except Exception:
-                print("Nothing in original file.")
+        except Exception:
+            """"""
 
-    x = crawl(url, cookies, headers, payload)
-
-    request_count += 1
-
-    loadMoreKey = x.json()[
-        "data"]["userProfile"]["feeds"]["pageInfo"]["loadMoreKey"]
-    print(request_count, loadMoreKey)
-
-    for node in x.json()["data"]["userProfile"]["feeds"]["nodes"]:
-        if is_first_node == True:
-            first_node = node
-            is_first_node = False
-            continue
-        elif (not first_node_inserted) and datetime.strptime(
-                node['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(UTC()) < datetime.strptime(
-                first_node['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(UTC()):
-            end, record_count = proc_node(first_node,
-                                          path, mode, start_time, end_time, end, record_count, b_save_pics, record_count_limit)
-            first_node_inserted = True
-            if end == True:
-                break
-        end, record_count = proc_node(node,
-                                      path, mode, start_time, end_time, end, record_count, b_save_pics, record_count_limit)
-        if end == True:
-            break
-
-    while end != True and loadMoreKey != None:  # 'hasNextPage': True
-        request_count += 1
-        payload["variables"]["loadMoreKey"] = loadMoreKey
+    while True:
 
         x = crawl(url, cookies, headers, payload)
+        request_count += 1
 
         loadMoreKey = x.json()[
             "data"]["userProfile"]["feeds"]["pageInfo"]["loadMoreKey"]
+        payload["variables"]["loadMoreKey"] = loadMoreKey
         print(request_count, loadMoreKey)
 
-        # if x.json()["data"]["userProfile"]["feeds"]["nodes"]:
         for node in x.json()["data"]["userProfile"]["feeds"]["nodes"]:
+            if is_first_node == True:
+                first_node = node
+                is_first_node = False
+                continue
+            elif (not first_node_inserted) and datetime.strptime(
+                    node['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(UTC()) < datetime.strptime(
+                    first_node['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(UTC()):
+                end, record_count = proc_node(first_node,
+                                              path, mode, start_time, end_time, end, record_count, b_save_pics, record_count_limit)
+                first_node_inserted = True
+                if end == True:
+                    break
+            
+            # TODO: rewrite proc_node and make those function call more clean and effective
+            #       justice if need to process this node then call "proc_node"
             end, record_count = proc_node(node,
                                           path, mode, start_time, end_time, end, record_count, b_save_pics, record_count_limit)
             if end == True:
                 break
+
+        if end == True or loadMoreKey == None:
+            break
 
     if add_data == True:
 
@@ -240,7 +190,7 @@ if __name__ == "__main__":
 
     ##################################################
     # ATTENTION: Replace with your own Jike user id. #
-    user_id = "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC"
+    user_id = "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC" #
     ##################################################
 
     b_save_pics = False  # Bool

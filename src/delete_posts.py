@@ -8,7 +8,7 @@ import json
 import requests
 from datetime import datetime, timedelta, tzinfo
 
-from utils import handle_errors, headers, cookies, UTC, GMT8
+from utils import *
 
 BASE_TIME = datetime(2015, 3, 28, tzinfo=GMT8())  # Jike 1.0 online
 CURR_TIME = datetime.now(GMT8())  # current time
@@ -35,18 +35,7 @@ def remove(id):
     - id: id of the post
     """
     payload["variables"]["id"] = id
-
-    try:
-        x = requests.post(url, cookies=cookies,
-                          headers=headers,
-                          data=json.dumps(payload))
-        print(x, x.json())
-    except requests.exceptions.ConnectionError as e:
-        print("Connection error", e.args)
-
-    if ('errors' in x.json()):
-        handle_errors(x, halt=False)
-    return x
+    op_post(payload)
 
 
 def clear(post_path, start_time, end_time, limit=None):
