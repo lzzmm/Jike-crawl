@@ -8,7 +8,7 @@ import json
 import requests
 from datetime import datetime, timedelta, tzinfo
 
-from utils import read_file, UTC, GMT8
+from utils import read_multi_json_file, UTC, GMT8
 
 
 dir_path = os.path.dirname(os.path.dirname(__file__))
@@ -19,7 +19,7 @@ BASE_YEAR = 2015
 
 
 def summarize_notifications(path):
-    x = read_file(path)
+    x = read_multi_json_file(path)
 
     users = {}
     users_all = {}
@@ -126,7 +126,7 @@ def summarize_notifications(path):
 
 
 def summarize_posts(path):
-    x = read_file(path)
+    x = read_multi_json_file(path)
 
     post_count = [0] * (CURR_YEAR-BASE_YEAR + 1)
     topics = {}

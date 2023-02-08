@@ -35,7 +35,8 @@ def remove(id):
     - id: id of the post
     """
     payload["variables"]["id"] = id
-    op_post(payload)
+    x = op_post(payload)
+    print(x, x.json())
 
 
 def clear(post_path, start_time, end_time, limit=None):

@@ -1,0 +1,16 @@
+query UnreadNotification {
+  viewer {
+    unread {
+      systemNotification {
+        unreadCount
+        __typename
+      }
+      notification {
+        unreadCount
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}

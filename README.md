@@ -1,8 +1,15 @@
 # Jike-crawl
 
-## TEMPORARILY NO TIME TO MAINTAIN
+> **Note** TEMPORARILY NO TIME TO MAINTAIN
 
-## PREFER RUNNING VIA `src/main.ipynb`
+TODO:
+
+1. save collections and profile
+2. rewrite some funtctions
+3. show local data in html
+4. update zh-cn README
+
+## RUNNING VIA `src/main.ipynb` IS STRONGLY RECOMMENDED
 
 ## Jike-crawl (EN)
 
@@ -42,7 +49,7 @@ Login to [Jike Website](https://web.okjike.com/), press `F12` to open DevTools. 
 
 Select one `profile?username=...` request and copy `username` from `Request URL` into `id` in `main()` in `src/crawl.py` file.
 
-Select one `graphql` request and copy value of `cookie` from `Request headers` into `cookies.txt` file.
+Select one `graphql` request and copy value of `cookie` from `Request headers` into `cfgfiles/cookies.txt` file.
 
 ![devtools](img/devtools.png)
 
@@ -52,7 +59,7 @@ Choose operations and set `user_id` in `main()` of `src/crawl.py`.
 
 If you want to **save pictures** in posts you can set `b_save_pics` in `main()` of `src/crawl.py` `True` (default is `False`).
 
-If enabled `b_save_pics`, pictures will be stored TODO:
+If enabled `b_save_pics`, pictures in posts will be stored into `data/pics`.
 
 You can crawl data in specific time range by modifiding `start_time` and `end_time`.
 
@@ -122,6 +129,12 @@ Follow instruction in `clear()` uncomment this line in DANGER ZONE
 
 run `delete_posts.py`。
 
+#### Like / unlike posts from user list
+
+Edit user name in `cfgfiles/user_name_list.txt`
+
+run `like_posts.py`
+
 ## 删号跑路（中文）
 
 [EN](#jike-crawl-en)
@@ -162,7 +175,7 @@ run `delete_posts.py`。
 
 1. 进入开发者模式。在 [即刻网页版](https://web.okjike.com/) 中登录自己的即刻账号，并进入个人主页。按 `F12` 打开开发者工具。切换到 `网络(Network)`，过滤 `Fetch/XHR`，刷新页面，此时下方会出现请求列表，罗列了请求的名称、状态等信息。
 
-2. 获取cookie。在请求列表中，任选一个名称为 `graphql` 的请求，单击 `标头(Headers)`，找到 `cookie` 字段并复制全文，粘贴到 `Jike-crawl/cookies.txt`。
+2. 获取cookie。在请求列表中，任选一个名称为 `graphql` 的请求，单击 `标头(Headers)`，找到 `cookie` 字段并复制全文，粘贴到 `Jike-crawl/cfgfiles/cookies.txt`。
 
     ![devtools](img/devtools_cn.png)
 
@@ -237,7 +250,7 @@ run `delete_posts.py`。
 
 2. 将 `main()` 函数中 `post_path` 修改为储存在本地的 `posts.json` 的路径。
 
-3. 取消 `clear()` 函数中 DANGER ZONE 中的这行注释（按 `Ctrl` + `/` 或删掉这行前面的 `# `）。
+3. 取消 `clear()` 函数中 DANGER ZONE 中的这行注释（按 `Ctrl` + `/` 或删掉这行前面的 `#` 和一个空格）。
 
     ```python
     ################# DANGER ZONE ##################
@@ -437,5 +450,427 @@ payload
         "id": "63872d0c02237e4e5813435d"
     },
     "query": "mutation RemoveMessage($id: ID!, $messageType: MessageType!) {\n  removeMessage(messageType: $messageType, id: $id) {\n    toast\n    __typename\n  }\n}\n"
+}
+```
+
+#### like
+
+payload
+
+```json
+{
+    "operationName": "LikeMessage",
+    "query": "mutation LikeMessage($messageType: MessageType!, $id: ID!) {        likeMessage(messageType: $messageType, id: $id)    }        ",
+    "variables": {
+        "messageType": "ORIGINAL_POST",
+        "id": ""
+    }
+}
+```
+
+#### unlike
+
+payload
+
+```json
+{
+    "operationName": "UnlikeMessage",
+    "variables": {
+        "messageType": "ORIGINAL_POST",
+        "id": ""
+    },
+    "query": "mutation UnlikeMessage($messageType: MessageType!, $id: ID!) {\n  unlikeMessage(messageType: $messageType, id: $id)\n}\n"
+}
+```
+
+#### Self Complete Profile
+
+```json
+{
+    "operationName": "SelfCompleteProfile",
+    "variables": {},
+    "query": "query SelfCompleteProfile {\n  profile {\n    ...CompleteuserFragment\n    __typename\n  }\n}\n\nfragment CompleteuserFragment on UserInfo {\n  username\n  screenName\n  briefIntro\n  city\n  country\n  gender\n  following\n  isSponsor\n  verifyMessage\n  backgroundImage {\n    picUrl\n    __typename\n  }\n  statsCount {\n    followedCount\n    followingCount\n    topicSubscribed\n    respectedCount\n    __typename\n  }\n  profileTags {\n    picUrl\n    text\n    type\n    __typename\n  }\n  avatarImage {\n    thumbnailUrl\n    picUrl\n    __typename\n  }\n  __typename\n}\n"
+}
+```
+
+#### Miss feeds
+
+payload
+
+```json
+{
+    "operationName": "MissedFeeds",
+    "variables": {},
+    "query": "query/query_miss_feeds_original.txt"
+}
+```
+
+result
+
+```json
+{
+    "data": {
+        "viewer": {
+            "followingUpdates": {
+                "pageInfo": {
+                    "loadMoreKey": {
+                        "session": "PopulatedUpdate",
+                        "lastPageEarliestTime": 1675782359000,
+                        "lastReadTime": 1675827415908
+                    },
+                    "hasNextPage": true,
+                    "__typename": "PageInfo"
+                },
+                "nodes": [
+                    {
+                        "id": "",
+                        "type": "ORIGINAL_POST",
+                        "content": "",
+                        "shareCount": 0,
+                        "repostCount": 0,
+                        "createdAt": "2023-02-08T03:30:59.716Z",
+                        "collected": false,
+                        "pictures": [
+                            {
+                                "format": "jpeg",
+                                ...
+                                "picUrl": "",
+                                "width": 1080,
+                                "height": 1223,
+                                "__typename": "PictureInfo"
+                            }
+                        ],
+                        "urlsInText": [],
+                        "__typename": "OriginalPost",
+                        "liked": false,
+                        "likeCount": 1,
+                        "commentCount": 0,
+                        "topic": {
+                            "id": "",
+                            "content": "AIGC探索站",
+                            "__typename": "TopicInfo"
+                        },
+                        "readTrackInfo": {
+                            "storyStatus": "NONE",
+                            "loadedAt": 1675827441634,
+                            "feedType": "FOLLOWING_UPDATES"
+                        },
+                        "user": {
+                            "avatarImage": {
+                                ...
+                            },
+                            "isSponsor": true,
+                            "username": "",
+                            "screenName": "",
+                            "briefIntro": "",
+                            "__typename": "User"
+                        },
+                        "video": null,
+                        "linkInfo": null,
+                        "isPrivate": null,
+                        "pinned": null
+                    },
+                    ...
+                ]
+            }
+        }
+    }
+}
+
+```
+
+#### Fetch self feeds
+
+payload
+
+```json
+{
+    "operationName": "FetchSelfFeeds",
+    "variables": {},
+    "query": "query/query_fetch_self_feeds_original.txt"
+}
+```
+
+#### User collections
+
+payload
+
+```json
+{
+    "operationName": "UserCollections",
+    "variables": {},
+    "query": "query/query_user_collections_original.txt"
+}
+```
+
+result
+
+```json
+{
+    "data": {
+        "viewer": {
+            "collections": {
+                "pageInfo": {
+                    "loadMoreKey": {
+                        "_id": "639e2175d6de7b3c57347a9e",
+                        "createdAt": "2022-12-17T20:07:17.409Z"
+                    },
+                    "hasNextPage": true,
+                    "__typename": "PageInfo"
+                },
+                "nodes": [
+                    {
+                        "id": "62ea9e354d572a90dd9f147c",
+                        "type": "ORIGINAL_POST",
+                        "content": "或许可以出一个功能，就是把账号内容归档然后不让别人看。",
+                        "shareCount": 0,
+                        "repostCount": 1,
+                        "createdAt": "2022-08-03T16:11:33.861Z",
+                        "collected": true,
+                        "pictures": [],
+                        "urlsInText": [],
+                        "__typename": "OriginalPost",
+                        "liked": true,
+                        "likeCount": 4,
+                        "commentCount": 8,
+                        "topic": {
+                            "id": "5a2114605a41da0016de2f4c",
+                            "content": "我来做即刻产品经理",
+                            "__typename": "TopicInfo"
+                        },
+                        "readTrackInfo": null,
+                        "user": {
+                            "avatarImage": {
+                                "thumbnailUrl": "https://cdnv2.ruguoapp.com/Fov1JGbHDr5vNXbQ7bZD1B9kGpWSv2.png?imageMogr2/auto-orient/heic-exif/1/format/jpeg/thumbnail/!120x120r/gravity/Center/crop/!120x120a0a0",
+                                "smallPicUrl": "https://cdnv2.ruguoapp.com/Fov1JGbHDr5vNXbQ7bZD1B9kGpWSv2.png?imageMogr2/auto-orient/heic-exif/1/format/jpeg/thumbnail/!300x300r/gravity/Center/crop/!300x300a0a0",
+                                "picUrl": "https://cdnv2.ruguoapp.com/Fov1JGbHDr5vNXbQ7bZD1B9kGpWSv2.png?imageMogr2/auto-orient/heic-exif/1/format/jpeg/thumbnail/!1000x1000r/gravity/Center/crop/!1000x1000a0a0",
+                                "__typename": "AvatarImage"
+                            },
+                            "isSponsor": true,
+                            "username": "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC",
+                            "screenName": "慵懒致命之炸毛",
+                            "briefIntro": "CS(HPC)@SYSU\n小镇摸鱼家的日常\n弱小，但是还年轻",
+                            "__typename": "User"
+                        },
+                        "video": null,
+                        "linkInfo": null,
+                        "isPrivate": null,
+                        "pinned": null
+                    },
+                    ...
+                ]
+            }
+        }
+    }
+}
+```
+
+#### Latest respect
+
+payload
+
+```json
+{
+    "operationName": "LatestRespect",
+    "variables": {
+        "username": "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC"
+    },
+    "query": "query LatestRespect($username: String!, $loadMoreKey: JSON) {\n  userProfile(username: $username) {\n    username\n    latestRespected(loadMoreKey: $loadMoreKey) {\n      pageInfo {\n        loadMoreKey\n        __typename\n      }\n      nodes {\n        id\n        content\n        createdAt\n        user {\n          id\n          ...TinyUserFragment\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment TinyUserFragment on UserInfo {\n  avatarImage {\n    thumbnailUrl\n    smallPicUrl\n    picUrl\n    __typename\n  }\n  isSponsor\n  username\n  screenName\n  briefIntro\n  __typename\n}\n"
+}
+```
+
+result
+
+```json
+{
+    "data": {
+        "userProfile": {
+            "username": "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC",
+            "latestRespected": {
+                "pageInfo": {
+                    "loadMoreKey": null,
+                    "__typename": "PageInfo"
+                },
+                "nodes": [
+                    {
+                        "id": "625e85371346e432d8fb2091",
+                        "content": "要一直坚持自己的喜爱呀_(:D」∠)_",
+                        "createdAt": "2022-04-19T09:47:35.517Z",
+                        "user": {
+                            "id": "5ee065b245f1b200176e199a",
+                            "avatarImage": {
+                                "thumbnailUrl": "https://cdnv2.ruguoapp.com/FgQw2a68x5atpplts9DdtKekmjzI.jpeg?imageMogr2/auto-orient/heic-exif/1/format/jpeg/thumbnail/!120x120r/gravity/Center/crop/!120x120a0a0",
+                                "smallPicUrl": "https://cdnv2.ruguoapp.com/FgQw2a68x5atpplts9DdtKekmjzI.jpeg?imageMogr2/auto-orient/heic-exif/1/format/jpeg/thumbnail/!300x300r/gravity/Center/crop/!300x300a0a0",
+                                "picUrl": "https://cdnv2.ruguoapp.com/FgQw2a68x5atpplts9DdtKekmjzI.jpeg?imageMogr2/auto-orient/heic-exif/1/format/jpeg/thumbnail/!1000x1000r/gravity/Center/crop/!1000x1000a0a0",
+                                "__typename": "AvatarImage"
+                            },
+                            "isSponsor": true,
+                            "username": "4bfdb180-691c-47f0-bd00-817926a9e539",
+                            "screenName": "永远喜欢温迪",
+                            "briefIntro": "我想一个人静静地消失",
+                            "__typename": "User"
+                        },
+                        "__typename": "Respect"
+                    },
+                    ...
+                ],
+                "__typename": "RespectConnection"
+            },
+            "__typename": "User"
+        }
+    }
+}
+```
+
+#### List respect
+
+```json
+{
+    "operationName": "ListRespect",
+    "variables": {
+        "username": "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC"
+    },
+    "query": "query ListRespect($username: String!, $loadMoreKey: JSON) {\n  userProfile(username: $username) {\n    username\n    respects(loadMoreKey: $loadMoreKey) {\n      pageInfo {\n        loadMoreKey\n        __typename\n      }\n      nodes {\n        id\n        content\n        createdAt\n        user {\n          ...TinyUserFragment\n          __typename\n        }\n        targetUser {\n          id\n          ...TinyUserFragment\n          bio\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment TinyUserFragment on UserInfo {\n  avatarImage {\n    thumbnailUrl\n    smallPicUrl\n    picUrl\n    __typename\n  }\n  isSponsor\n  username\n  screenName\n  briefIntro\n  __typename\n}\n"
+}
+```
+
+#### search related keywords (users / topics)
+
+payload
+
+```json
+{
+    "operationName": "SearchReleatedKeywords",
+    "variables": {
+        "keywords": "是周同学"
+    },
+    "query": "query SearchReleatedKeywords($keywords: String!) {\n  search {\n    relatedKeywordTips(keywords: $keywords) {\n      type\n      description\n      icon\n      suggestion\n      url\n      __typename\n    }\n    __typename\n  }\n}\n"
+}
+```
+
+returns 1/3
+
+```json
+{
+    "data": {
+        "search": {
+            "relatedKeywordTips": [
+                {
+                    "type": "user",
+                    "description": null,
+                    "icon": "https://cdnv2.ruguoapp.com/Fl1Y3GCIC5YJuH3z3L9_2u3pzUyg.png",
+                    "suggestion": "用户：是周同学",
+                    "url": "/u/EC62A3C7-4C25-45E4-B41F-15C5D3338C4F",
+                    "__typename": "SearchRelatedKeyword"
+                },
+                {
+                    "type": "keyword",
+                    "description": null,
+                    "icon": "https://cdnv2.ruguoapp.com/Fn1nrT-XM1l46Y4sFfFnEBJBZXg5.png",
+                    "suggestion": "是周同学",
+                    "url": "/search?type=integrated&keywords=%E6%98%AF%E5%91%A8%E5%90%8C%E5%AD%A6",
+                    "__typename": "SearchRelatedKeyword"
+                }
+            ],
+            "__typename": "Search"
+        }
+    }
+}
+```
+
+returns 2/3
+
+```json
+{
+    "data": {
+        "search": {
+            "relatedKeywordTips": [
+                {
+                    "type": "keyword",
+                    "description": null,
+                    "icon": "https://cdnv2.ruguoapp.com/Fn1nrT-XM1l46Y4sFfFnEBJBZXg5.png",
+                    "suggestion": "炸毛",
+                    "url": "/search?type=integrated&keywords=%E7%82%B8%E6%AF%9B",
+                    "__typename": "SearchRelatedKeyword"
+                }
+            ],
+            "__typename": "Search"
+        }
+    }
+}
+```
+
+returns 3/3
+
+```json
+{
+    "data": {
+        "search": {
+            "relatedKeywordTips": [
+                {
+                    "type": "topic",
+                    "description": "100万+人加入",
+                    "icon": "https://cdnv2.ruguoapp.com/FtiOcV3mCD0eNy8yu7nK0YUfYLyR.png",
+                    "suggestion": "圈子：读书会",
+                    "url": "/topic/5a158e62a0ef4f00117ab145?ref=SEARCH_KEYWORDTIP",
+                    "__typename": "SearchRelatedKeyword"
+                },
+                {
+                    "type": "keyword",
+                    "description": null,
+                    "icon": "https://cdnv2.ruguoapp.com/Fn1nrT-XM1l46Y4sFfFnEBJBZXg5.png",
+                    "suggestion": "读书会",
+                    "url": "/search?type=integrated&keywords=%E8%AF%BB%E4%B9%A6%E4%BC%9A",
+                    "__typename": "SearchRelatedKeyword"
+                }
+            ],
+            "__typename": "Search"
+        }
+    }
+}
+```
+
+error
+
+```json
+{
+    "errors": [
+        {
+            "message": "Expected a value of type \"SearchRelatedKeywordType\" but received: \"recruitment\"",
+            "locations": [
+                {
+                    "line": 4,
+                    "column": 7
+                }
+            ],
+            "path": [
+                "search",
+                "relatedKeywordTips",
+                0,
+                "type"
+            ],
+            "extensions": {
+                "code": "INTERNAL_SERVER_ERROR"
+            }
+        }
+    ],
+    "data": {
+        "search": {
+            "relatedKeywordTips": null,
+            "__typename": "Search"
+        }
+    }
+}
+```
+
+#### Search Integrate
+
+```json
+{
+    "operationName": "SearchIntegrate",
+    "variables": {
+        "keywords": "炸毛"
+    },
+    "query": "query/query_search_integrate_original.txt"
 }
 ```

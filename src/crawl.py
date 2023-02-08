@@ -35,7 +35,7 @@ def proc_node(node, path, mode, start_time, end_time, end, record_count, b_save_
     time = datetime.strptime(
         node['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(UTC())
 
-    # TODO: this should not be here but should be outside this function
+    # TODO: this should not be here and should be outside this function
     if time >= start_time and time <= end_time:
         save_json(node, path, mode)
         if b_save_pics and ("pictures" in node) and len(node["pictures"]) != 0:
@@ -218,5 +218,5 @@ if __name__ == "__main__":
 
     sort_nodes(post_path)
 
-    crawl_posts(user_id, post_path, "a", b_save_pics,
-                post_record_limit, post_start_time, post_end_time)
+    # crawl_posts(user_id, post_path, "a", b_save_pics,
+                # post_record_limit, post_start_time, post_end_time)

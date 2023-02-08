@@ -57,7 +57,7 @@ headers = {
 }
 
 cookies = {
-    'cookie': open(os.path.join(dir_path, 'cookies.txt')).read()
+    'cookie': open(os.path.join(dir_path, 'cfgfiles/cookies.txt')).read()
 }
 
 
@@ -79,7 +79,8 @@ def refresh_cookies():
         print("Connection error", e.args)
 
     if 'errors' in x.json() and x.json()["errors"][0]["extensions"]["code"] == "UNAUTHENTICATED":
-        print("Please copy latest cookie from DevTools of browser to ./cookies.txt!")
+        print(
+            "Please copy latest cookie from DevTools of browser to ./cfgfiles/cookies.txt!")
         sys.exit(1)
 
     accessToken = x.json()["data"]["refreshToken"]["accessToken"]
@@ -88,7 +89,7 @@ def refresh_cookies():
         accessToken + '; x-jike-refresh-token=' + refreshToken
 
     # Write cookie in file
-    with open(os.path.join(dir_path, 'cookies.txt'), 'w', encoding="utf8") as f:
+    with open(os.path.join(dir_path, 'cfgfiles/cookies.txt'), 'w', encoding="utf8") as f:
         f.write(cookies['cookie'])
         print("Token updated.")
 
@@ -111,119 +112,9 @@ def handle_errors(x, halt=True):
             sys.exit(1)
 
 
-def sort_nodes(path):
-    """
-    Sort nodes in time order, from later to earlier
-    ---
-    args:
-    - path: path to json file
-    """
-    try:
-        nodes = read_file(path)
-
-        nodes.sort(key=lambda x: x['createdAt'],  reverse=True)
-
-        with open(path, "w", encoding="utf8") as f:
-            for node in nodes:
-                save_json(node, path, "a")
-
-        print("Sorted.")
-    except Exception:
-        print("Not sorted.")
-
-
-def read_file(path, lines=None):
-    """
-    read multi-object json file
-    ---
-    args:
-    - path: path to json file
-    - lines: lines to read
-
-    return: json object list
-    """
-    try:
-        with open(path, 'r', encoding="utf8") as f:
-            count = 0
-            x = []
-            line = f.readline()
-
-            while(line):
-                x.append(json.loads(line))
-                count += 1
-                line = f.readline()
-                if lines and count == lines:
-                    break
-
-            print("Read", count, "line(s) from", path)
-            return x
-    except Exception:
-        print("Failed reading file.")
-
-
-def save_pics(node):
-    """
-    save pictures in post
-    ---
-    args:
-    - node: json object with a list of pictures info to save
-    """
-
-    pic_path = os.path.join(dir_path, "data/pics/", node["id"])
-    os.makedirs(pic_path, exist_ok=True)
-
-    for pic in node["pictures"]:
-        picUrl = pic["picUrl"]
-        x = requests.get(picUrl)
-        # count += 1
-        # with open (os.path.join(pic_path, str(count)), 'wb') as f:
-        with open(os.path.join(pic_path, picUrl.split("?")[0].split("/")[-1]), 'wb') as f:
-            f.write(x.content)
-
-    print("Pictures saved at", pic_path)
-
-
-def save_db(node):
-    """
-    store data into mysql
-    ---
-    args: 
-    - node: json object
-    """
-    # TODO: store into db
-    print(node)
-
-
-def save_csv(node, path):
-    """
-    store data into csv
-    ---
-    args: 
-    - node: json object
-    - path: csv file path
-    """
-    # TODO: store into csv
-    print(node)
-
-
-def save_json(node, path, mode, indent=None):
-    """
-    save json object into json file
-    ---
-    args: 
-    - node: json object
-    - path: json file path
-    - mode: "a" for add, "w" for overwrite
-    - indent: int, default: None
-    """
-    with open(path, mode, encoding="utf8") as f:
-        json.dump(node, f, ensure_ascii=False, indent=indent)
-        f.write("\n")
-
-
 def crawl(url, cookies, headers, payload):
     """
-    crawl data
+    crawl data TODO: Could be replaced by "op_post"
     ---
     args: 
     - url
@@ -241,7 +132,8 @@ def crawl(url, cookies, headers, payload):
         print("Connection error", e.args)
 
     # The "has_key" method has been removed in Python 3
-    while 'errors' in x.json():
+    # TODO: Needs to improve here
+    if 'errors' in x.json():
         handle_errors(x)
         x = crawl(url, cookies, headers, payload)
 
@@ -249,13 +141,15 @@ def crawl(url, cookies, headers, payload):
 
 
 # haven't finished yet, but works well
-def crawl_posts_fn(user_id, proc_node_fn, op_payload=None, record_count_limit=None, start_time=BASE_TIME, end_time=CURR_TIME, update=False):
+def crawl_posts_fn(user_id, proc_node_fn, op_payload=None, miss_feed_only=False, record_count_limit=None, start_time=BASE_TIME, end_time=CURR_TIME, update=False):
     """
-    loop and crawl posts from user_id and do something TODO: rewrite
+    loop and crawl posts from user_id and do something TODO: rewrite, and some bugs are still remaining
     ---
     args:
     - user_id: Jike user id
     - proc_node_fn: function to process the crawled post
+    - op_payload: payload for function op which is called in proc_node_fn
+    - miss_feed_only: whether only check miss feed
     - record_count_limit: number of records to crawl, default no limit
     - start_time: datetime object
     - end_time: datetime object, later than start_time
@@ -269,6 +163,13 @@ def crawl_posts_fn(user_id, proc_node_fn, op_payload=None, record_count_limit=No
         }
     }
 
+    if miss_feed_only == True:
+        payload = {
+            "operationName": "MissedFeeds",
+            "query": open(os.path.join(dir_path, "query/query_miss_feeds_original.txt")).read(),
+            "variables": {}
+        }
+
     end = False
     add_data = False
     is_first_node = True
@@ -276,24 +177,38 @@ def crawl_posts_fn(user_id, proc_node_fn, op_payload=None, record_count_limit=No
     request_count = 0
     record_count = 0
     first_node = {}
-    
-    while True: # pseudo-do-while in python
+
+    while True:  # pseudo-do-while in python
 
         x = crawl(url, cookies, headers, payload)
         request_count += 1
 
+        if miss_feed_only == False:
+            viewer = "userProfile"
+            feeds = "feeds"
+        else:
+            viewer = "viewer"
+            feeds = "missedFeeds"
+
         loadMoreKey = x.json()[
-            "data"]["userProfile"]["feeds"]["pageInfo"]["loadMoreKey"]
+            "data"][viewer][feeds]["pageInfo"]["loadMoreKey"]
         payload["variables"]["loadMoreKey"] = loadMoreKey
         print(request_count, loadMoreKey)
 
-        for node in x.json()["data"]["userProfile"]["feeds"]["nodes"]:
+        for node in x.json()["data"][viewer][feeds]["nodes"]:
+
+            print(node)
+            # not tested yet
+            if miss_feed_only == True and node["user"]["username"] != user_id:
+                print(node["user"]["username"])
+                continue
+
             end, record_count = proc_node_fn(
                 node, end, record_count, op_post, op_payload, start_time, end_time, record_count_limit)
+
             if end == True:
                 break
-        
-                
+
         if end == True or loadMoreKey == None:
             break
 
@@ -322,7 +237,7 @@ def proc_node_fn(node, end, record_count, op, op_payload=None, start_time=BASE_T
     if time >= start_time and time <= end_time:
         op_payload["variables"]["id"] = node["id"]
         op(op_payload)
-        print(node["content"], time)
+        print(node["content"], "\n", time, "\n", sep="")
         record_count += 1
 
     if (record_count_limit != None and record_count >= record_count_limit) or (time < start_time):
@@ -331,7 +246,57 @@ def proc_node_fn(node, end, record_count, op, op_payload=None, start_time=BASE_T
     return end, record_count
 
 
-def op_post(payload):
+def get_user_id(user_name: str) -> str:
+    """
+    Get user_id("userName" in remote db) by user_name("screenName" in remote db)
+    ---
+    args:
+    - user_name: user screen name, str
+
+    return: user id, str
+    """
+
+    payload_releated_keywords = {
+        "operationName": "SearchReleatedKeywords",
+        "variables": {
+            "keywords": user_name
+        },
+        "query": "query SearchReleatedKeywords($keywords: String!) {\n  search {\n    relatedKeywordTips(keywords: $keywords) {\n      type\n      description\n      icon\n      suggestion\n      url\n      __typename\n    }\n    __typename\n  }\n}\n"
+    }
+
+    payload_search_integrate = {
+        "operationName": "SearchIntegrate",
+        "variables": {
+            "keywords": user_name
+        },
+        "query": open(os.path.join(dir_path, "query/query_search_integrate.txt")).read()
+    }
+
+    try:
+        x = op_post(payload_releated_keywords)
+        # print(x.json())
+
+        for tip in x.json()["data"]["search"]["relatedKeywordTips"]:
+
+            if tip["type"] == "user":
+                return tip["url"].lstrip("/u")
+
+        x = op_post(payload_search_integrate)
+        # print(x.json())
+
+        for node in x.json()["data"]["search"]["integrate"]["nodes"]:
+
+            if "items" in node:
+                return node["items"][0]["username"]
+
+    except Exception:
+        print("Exception in get_user_id!")
+
+
+def op_post(payload, url=url, headers=headers, cookies=cookies):
+    """
+    post with payload
+    """
     # TODO: optimize code structure
 
     assert payload is not None
@@ -340,16 +305,236 @@ def op_post(payload):
         x = requests.post(url, cookies=cookies,
                           headers=headers,
                           data=json.dumps(payload))
-        print(x, x.json())
+        # print(x, x.json())
     except requests.exceptions.ConnectionError as e:
         print("Connection error", e.args)
 
-    if ('errors' in x.json()):
+    if 'errors' in x.json():
+        # FIXME: JSONDecodeError("Expecting value", s, err.value) from None
         handle_errors(x, halt=False)
+        x = op_post(payload)
+
     return x
 
 
-# Not used yet...
+def update_user_id_list() -> list:
+    """
+    update "cfgfiles/user_id_list.txt"
+    base on "cfgfiles/user_name_list.txt"
+    ---
+    return:
+        user_id_list
+    """
+
+    user_name_list = read_list_file(os.path.join(
+        dir_path, "cfgfiles/user_name_list.txt"))
+
+    user_id_list = []
+
+    for user_name in user_name_list:
+
+        user_id = get_user_id(user_name)
+        user_id_list.append(user_id)
+        print(user_name, user_id)
+
+    save_list(user_id_list, os.path.join(
+        dir_path, "cfgfiles/user_id_list.txt"))
+
+    print(len(user_id_list), "line(s) operated.")
+
+    return user_id_list
+
+
+def sort_nodes(path):
+    """
+    Sort nodes in time order, from later to earlier
+    ---
+    args:
+    - path: path to json file
+    """
+    try:
+        nodes = read_multi_json_file(path)
+
+        nodes.sort(key=lambda x: x['createdAt'],  reverse=True)
+
+        with open(path, "w", encoding="utf8") as f:
+            for node in nodes:
+                save_json(node, path, "a")
+
+        print("Sorted.")
+    except Exception:
+        print("Not sorted.")
+
+
+#####################################
+#   read file                       #
+#####################################
+def read_multi_json_file(path, lines=None) -> list:
+    """
+    Read multi-object json file
+    ---
+    args:
+    - path: path to json file
+    - lines: lines to read
+
+    return: json object list
+    """
+
+    x = []
+    try:
+        with open(path, 'r', encoding="utf8") as f:
+            count = 0
+            line = f.readline()
+
+            while line and (lines == None or count < lines):
+                x.append(json.loads(line))
+                count += 1
+                line = f.readline()
+
+            print("Read", count, "line(s) from", path)
+
+    except Exception:
+        print("Failed reading file.")
+
+    return x
+
+
+def read_list_file(path, lines=None) -> list:
+    """
+    Read list file
+    ---
+    args:
+    - path: path to file
+    - lines: lines to read
+
+    return: list
+    """
+
+    x = []
+    try:
+        with open(path, 'r', encoding="utf8") as f:
+            count = 0
+            line = f.readline()
+
+            while line and (lines == None or count < lines):
+                # important to remove trailing "\n"
+                x.append(line.rstrip("\n"))
+                count += 1
+                line = f.readline()
+
+            print("Read", count, "line(s) from", path)
+
+    except Exception:
+        print("Failed reading file.")
+
+    return x
+
+
+#####################################
+#  write file                       #
+#####################################
+def save_list(list: list, path: str, mode="w"):
+    """
+    Save a list of lines into a file
+    """
+
+    with open(path, mode, encoding="utf8") as f:
+
+        for line in list:
+            f.write(line)
+            f.write("\n")
+
+
+def save_pics(node):
+    """
+    save pictures in post
+    ---
+    args:
+    - node: json object with a list of pictures info to save
+    """
+
+    pic_path = os.path.join(dir_path, "data/pics/", node["id"])
+    os.makedirs(pic_path, exist_ok=True)
+
+    for pic in node["pictures"]:
+        picUrl = pic["picUrl"]
+        x = requests.get(picUrl)
+        # count += 1
+        # with open (os.path.join(pic_path, str(count)), 'wb') as f:
+        with open(os.path.join(pic_path, picUrl.split("?")[0].split("/")[-1]), 'wb') as f:
+            f.write(x.content)
+
+    print("Pictures saved at", pic_path)
+
+
+def save_json(node, path, mode, indent=None):
+    """
+    save json object into json file
+    ---
+    args: 
+    - node: json object
+    - path: json file path
+    - mode: "a" for add, "w" for overwrite
+    - indent: int, default: None
+    """
+    with open(path, mode, encoding="utf8") as f:
+        json.dump(node, f, ensure_ascii=False, indent=indent)
+        f.write("\n")
+
+
+# Functions NOT used yet...
+def crawl_following() -> None:
+    """
+    get following users
+    TBD
+    ---
+    args:
+    """
+
+    # url = "https://api.ruguoapp.com/1.0/userRelation/getFollowerList"
+
+    payload = {
+        # TODO: could not find a graphql API
+        # "operationName": "ListFollower",
+        # "variables": {
+        #     "username": "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC"
+        # },
+        # "query": "query ListFollower {\n followedCount \n__typename\n}\n"
+        # "limit": 20,
+        # "username": "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC"
+    }
+
+    # try:
+    x = op_post(payload)
+    print(x, x.json())
+    # print(x)
+    # except Exception:
+    # print("Exception in crawl_following!")
+
+
+def save_db(node):
+    """
+    store data into mysql
+    ---
+    args: 
+    - node: json object
+    """
+    # TODO: store into db
+    print(node)
+
+
+def save_csv(node, path):
+    """
+    store data into csv
+    ---
+    args: 
+    - node: json object
+    - path: csv file path
+    """
+    # TODO: store into csv
+    print(node)
+
+
 def print_format(str, way, width, fill=' ', ed=''):
     try:
         count = 0
