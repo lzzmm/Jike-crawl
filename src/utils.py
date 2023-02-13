@@ -17,20 +17,20 @@ def refresh_cookies():
     warn("accessToken expired, trying to refresh accessToken...")
 
     try:
-        x = requests.post(API_GRAPHQL, cookies=COOKIES,
-                          headers=HEADERS,
-                          data=json.dumps(PAYLOAD_REFRESH_COOKIES))
-        debug(x)
+        response = requests.post(API_GRAPHQL, cookies=COOKIES,
+                                 headers=HEADERS,
+                                 data=json.dumps(PAYLOAD_REFRESH_COOKIES))
+        debug(response)
 
     except requests.exceptions.ConnectionError as e:
         err("Connection error", e.args)
 
-    if 'errors' in x.json() and x.json()["errors"][0]["extensions"]["code"] == "UNAUTHENTICATED":
+    if 'errors' in response.json() and response.json()["errors"][0]["extensions"]["code"] == "UNAUTHENTICATED":
         err("Please copy latest cookie from DevTools of browser to ./config/cookies.txt!")
         sys.exit(1)
 
-    accessToken = x.json()["data"]["refreshToken"]["accessToken"]
-    refreshToken = x.json()["data"]["refreshToken"]["refreshToken"]
+    accessToken = response.json()["data"]["refreshToken"]["accessToken"]
+    refreshToken = response.json()["data"]["refreshToken"]["refreshToken"]
     COOKIES['cookie'] = '_ga=GA1.2.1010923813.1673409584; _gid=GA1.2.564544936.1673409584; fetchRankedUpdate=1673538878642; x-jike-access-token=' + \
         accessToken + '; x-jike-refresh-token=' + refreshToken
 
@@ -56,20 +56,20 @@ def get_refresh_token(path: str = os.path.join(DIR_PATH, 'config/cookies.txt')) 
     return open(path).read().split(sep="x-jike-access-token=")[1].split(sep="x-jike-refresh-token=")[1]
 
 
-def handle_errors(x, halt=True) -> None:
+def handle_errors(response, halt=True) -> None:
     """
     handle http errors
     ---
     args:
-    - x: the http response
+    - response: the http response
     - halt: bool, if true, stop program when unexpected error occurs
     """
-    warn(x.json()["errors"][0]["extensions"]["code"])
+    warn(response.json()["errors"][0]["extensions"]["code"])
 
-    if x.json()["errors"][0]["extensions"]["code"] == "UNAUTHENTICATED":
+    if response.json()["errors"][0]["extensions"]["code"] == "UNAUTHENTICATED":
         refresh_cookies()
     else:
-        err("Unexpected error: ", x.json()["errors"][0]["extensions"])
+        err("Unexpected error: ", response.json()["errors"][0]["extensions"])
         if halt:
             sys.exit(1)
 
@@ -86,9 +86,9 @@ def crawl(url, cookies, headers, payload) -> requests.Response:
     - return: response
     """
     try:
-        x = requests.post(url, cookies=cookies,
-                          headers=headers,
-                          data=json.dumps(payload))
+        response = requests.post(url, cookies=cookies,
+                                 headers=headers,
+                                 data=json.dumps(payload))
 
     except requests.exceptions.ConnectionError as e:
         err("Connection error", e.args)
@@ -96,13 +96,13 @@ def crawl(url, cookies, headers, payload) -> requests.Response:
     # The "has_key" method has been removed in Python 3
     # TODO: Needs to improve here
     try:
-        if x is None or 'errors' in x.json():
-            handle_errors(x)
-            x = crawl(url, cookies, headers, payload)
-    except json.JSONDecodeError as e:
+        if response is None or 'errors' in response.json():
+            handle_errors(response)
+            response = crawl(url, cookies, headers, payload)
+    except json.JSONDecodeError or UnboundLocalError as e:
         err(e.args)
 
-    return x
+    return response
 
 
 # haven't finished yet, but works well
@@ -140,7 +140,7 @@ def crawl_posts_fn(user_id: str, proc_node_fn, op_payload=None, miss_feed_only: 
 
         debug(payload["variables"])
 
-        x = crawl(API_GRAPHQL, COOKIES, HEADERS, payload)
+        response = crawl(API_GRAPHQL, COOKIES, HEADERS, payload)
         request_count += 1
 
         if miss_feed_only == False:
@@ -151,7 +151,7 @@ def crawl_posts_fn(user_id: str, proc_node_fn, op_payload=None, miss_feed_only: 
             feeds = "followingUpdates"
 
         try:
-            loadMoreKey = x.json()[
+            loadMoreKey = response.json()[
                 "data"][viewer][feeds]["pageInfo"]["loadMoreKey"]
             payload["variables"]["loadMoreKey"] = loadMoreKey
 
@@ -159,7 +159,7 @@ def crawl_posts_fn(user_id: str, proc_node_fn, op_payload=None, miss_feed_only: 
             err(e.args)
         debug("sending request", request_count, loadMoreKey)
 
-        for node in x.json()["data"][viewer][feeds]["nodes"]:
+        for node in response.json()["data"][viewer][feeds]["nodes"]:
 
             debug(node)
             if node["type"] != "ORIGINAL_POST" and node["type"] != "REPOST":
@@ -182,7 +182,7 @@ def crawl_posts_fn(user_id: str, proc_node_fn, op_payload=None, miss_feed_only: 
         if end == True or loadMoreKey == None or (miss_feed_only == True and loadMoreKey["lastPageEarliestTime"] < loadMoreKey["lastReadTime"]):
             break
 
-    done(request_count, "request(s) was(were) sent.")
+    done(request_count, "request(s) sent.")
     done(record_count, "record(s) operated.")
 
     return res_nodes
@@ -208,6 +208,7 @@ def proc_node_fn(node, end, record_count, op, op_payload=None, start_time=BASE_T
 
     if time > start_time and time <= end_time:
         op_payload["variables"]["id"] = node["id"]
+        op_payload["variables"]["messageType"] = node["type"]
         op(op_payload)
         done(node["content"], time.astimezone(GMT8()))
         record_count += 1
@@ -232,18 +233,18 @@ def get_user_id(user_name: str) -> str:
     PAYLOAD_SEARCH_INTEGRATE["variables"]["keywords"] = user_name
 
     try:
-        x = op_post(PAYLOAD_RELATED_KEYWORDS)
-        # debug(x.json())
+        response = op_post(PAYLOAD_RELATED_KEYWORDS)
+        # debug(response.json())
 
-        for tip in x.json()["data"]["search"]["relatedKeywordTips"]:
+        for tip in response.json()["data"]["search"]["relatedKeywordTips"]:
 
             if tip["type"] == "user":
                 return tip["url"].lstrip("/u")
 
-        x = op_post(PAYLOAD_SEARCH_INTEGRATE)
-        # debug(x.json())
+        response = op_post(PAYLOAD_SEARCH_INTEGRATE)
+        # debug(response.json())
 
-        for node in x.json()["data"]["search"]["integrate"]["nodes"]:
+        for node in response.json()["data"]["search"]["integrate"]["nodes"]:
 
             if "items" in node:
                 return node["items"][0]["username"]
@@ -252,33 +253,28 @@ def get_user_id(user_name: str) -> str:
         err("In get_user_id!", e.args)
 
 
-def crawl_following() -> None:
+def call_api(api, payload) -> requests.Response:
     """
-    get following users
-    TBD
+    call api
     ---
     args:
     """
 
-    refresh_cookies()
+    # refresh_cookies()
 
-    headers_follow = HEADERS
-    headers_follow["referer"] = "https://web.okjike.com/"
-    headers_follow["x-jike-access-token"] = get_access_token()
-    headers_follow["x-jike-refresh-token"] = get_refresh_token()
-
-    payload_follow = {
-        "limit": 10,
-        "username": "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC",
-        "loadMoreKey": ""
-    }
+    headers = HEADERS
+    headers["referer"] = "https://web.okjike.com/"
+    headers["x-jike-access-token"] = get_access_token()
+    headers["x-jike-refresh-token"] = get_refresh_token()
 
     try:
-        x = op_post(payload_follow, API_GET_FOLLOWER_LIST, headers_follow)
-        debug(x, x.json())
+        response = op_post(payload, api, headers)
+        # debug(response, response.json())
+        debug(response, response.json())
+        return response
 
     except Exception as e:
-        err("In crawl_following", e.args)
+        err("In call_api", e.args)
 
 
 def op_post(payload, url=API_GRAPHQL, headers=HEADERS, cookies=COOKIES) -> requests.Response:  # 这四个作为一个类
@@ -290,23 +286,23 @@ def op_post(payload, url=API_GRAPHQL, headers=HEADERS, cookies=COOKIES) -> reque
     assert payload is not None
 
     try:
-        x = requests.post(url, cookies=cookies,
-                          headers=headers,
-                          data=json.dumps(payload))
+        response = requests.post(url, cookies=cookies,
+                                 headers=headers,
+                                 data=json.dumps(payload))
 
     except requests.exceptions.ConnectionError as e:
         err("Connection error", e.args)
 
     try:
-        if 'errors' in x.json():
+        if 'errors' in response.json():
 
-            handle_errors(x, halt=False)
-            x = op_post(payload)
+            handle_errors(response, halt=False)
+            response = op_post(payload)
 
     except Exception as e:
         err(e.args)
 
-    return x
+    return response
 
 
 def update_user_id_list() -> list:
@@ -334,6 +330,40 @@ def update_user_id_list() -> list:
     done(len(user_id_list), "line(s) operated.")
 
     return user_id_list
+
+
+def mutually_following(follower_list: list, following_list: list) -> list:
+    # list1 = follower_list if len(follower_list) > len(following_list) else following_list # greater
+    # list2 = following_list if len(follower_list) > len(following_list) else follower_list
+    list_res = []
+
+    for user in follower_list:
+        for item in following_list:
+            if user["id"] == item["id"]:
+                list_res.append(user)
+
+    return list_res
+
+
+def one_way_follower(follower_list: list) -> list:
+
+    return [user for user in follower_list if user["following"] == False]
+
+
+def one_way_following(follower_list: list, following_list: list) -> list:
+
+    list_res = []
+
+    for user in following_list:
+        exist = False
+        for item in follower_list:
+            if user["id"] == item["id"]:
+                exist = True
+                break
+        if not exist:
+            list_res.append(user)
+
+    return list_res
 
 
 def sort_nodes(path) -> None:
@@ -424,6 +454,11 @@ def read_multi_json_file(path, lines=None) -> list:
     """
 
     x = []
+
+    if not os.path.isfile(path):
+        err("File not found: %s" % path)
+        return x
+
     try:
         with open(path, 'r', encoding="utf8") as f:
             count = 0
@@ -454,6 +489,11 @@ def read_list_file(path, lines=None) -> list:
     """
 
     x = []
+
+    if not os.path.isfile(path):
+        err("File not found: %s" % path)
+        return x
+
     try:
         with open(path, 'r', encoding="utf8") as f:
             count = 0
@@ -477,13 +517,24 @@ def read_list_file(path, lines=None) -> list:
 #  write file                       #
 #####################################
 def log(*values: object, path: str = "data/logs/log.txt") -> None:
-    with open(os.path.join(DIR_PATH, path), 'a', encoding='utf-8') as f:
-        print(CURR_TIME.__format__("%Y-%m-%d %X %Z"), *values, file=f)
+    try:
+        with open(os.path.join(DIR_PATH, path), 'a', encoding='utf-8') as f:
+
+            print(CURR_TIME.__format__("%Y-%m-%d %X %Z"), *values, file=f)
+
+    except Exception as e:
+        err(e.args)
 
 
 def clear_log(path: str = "data/logs/log.txt"):
-    os.remove(os.path.join(DIR_PATH, path))
-    done("data/logs/log.txt has been removed.")
+    try:
+        path = os.path.join(DIR_PATH, path)
+        os.remove(path) if os.path.isfile(path) else ...
+
+    except Exception as e:
+        err(e.args)
+
+    done("data/logs/log.txt has been cleared.")
 
 
 def save_list(list: list, path: str, mode="w") -> None:
@@ -496,7 +547,7 @@ def save_list(list: list, path: str, mode="w") -> None:
         for line in list:
             f.write(line)
             f.write("\n")
-            
+
     done("List saved at", path)
 
 
@@ -513,11 +564,11 @@ def save_pics(node) -> None:
 
     for pic in node["pictures"]:
         picUrl = pic["picUrl"]
-        x = requests.get(picUrl)
+        response = requests.get(picUrl)
         # count += 1
         # with open (os.path.join(pic_path, str(count)), 'wb') as f:
         with open(os.path.join(pic_path, picUrl.split("?")[0].split("/")[-1]), 'wb') as f:
-            f.write(x.content)
+            f.write(response.content)
 
     done("Pictures saved at", pic_path)
 
@@ -535,6 +586,21 @@ def save_json(node, path, mode, indent=None) -> None:
     with open(path, mode, encoding="utf8") as f:
         json.dump(node, f, ensure_ascii=False, indent=indent)
         f.write("\n")
+
+
+def save_json_list(list: list, path: str) -> None:
+    """
+    Save a list of json objects into a file
+    """
+    debug("save_json_list", os.path.abspath(
+        os.path.join(path, os.path.pardir)))
+    os.remove(path) if os.path.isfile(path) else os.makedirs(
+        os.path.abspath(os.path.join(path, os.path.pardir)), exist_ok=True)
+
+    for obj in list:
+        save_json(obj, path, "a", indent=None)
+
+    done("Json object list saved at", path)
 
 
 # Functions NOT used yet...

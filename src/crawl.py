@@ -32,7 +32,7 @@ def proc_node(node, path, mode, start_time, end_time, end, record_count, b_save_
 
     time = datetime.strptime(
         node['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8())
-    
+
     debug(time)
 
     # TODO: this should not be here and should be outside this function
@@ -77,28 +77,29 @@ def crawl_notifications(path, mode="a", b_save_pics=False, record_count_limit=No
         try:
             with open(path, 'r', encoding="utf8") as f:
                 line = f.readline()
-                x = json.loads(line)
-                if 'createdAt' in x:
+                response = json.loads(line)
+                if 'createdAt' in response:
                     start_time = datetime.strptime(
-                        x['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8())
+                        response['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8())
                     info("Read record(s) from", start_time)
                     path = os.path.join(
                         DIR_PATH, "data/temp-new-data-info.json")
+                    os.remove(path) if os.path.isfile(path) else ...
                     add_data = True
         except Exception as e:
             warn(e.args)
 
     while True:
 
-        x = crawl(API_GRAPHQL, COOKIES, HEADERS, payload)
+        response = crawl(API_GRAPHQL, COOKIES, HEADERS, payload)
         request_count += 1
 
-        loadMoreKey = x.json()[
+        loadMoreKey = response.json()[
             "data"]["viewer"]["notifications"]["pageInfo"]["loadMoreKey"]
         payload["variables"]["loadMoreKey"] = loadMoreKey
         info("sending request", request_count, loadMoreKey)
 
-        for node in x.json()["data"]["viewer"]["notifications"]["nodes"]:
+        for node in response.json()["data"]["viewer"]["notifications"]["nodes"]:
 
             end, record_count = proc_node(
                 node, path, mode, start_time, end_time, end, record_count, b_save_pics, record_count_limit)
@@ -118,7 +119,7 @@ def crawl_notifications(path, mode="a", b_save_pics=False, record_count_limit=No
         os.remove(origin_path)
         os.rename(path, origin_path)
 
-    done(request_count, "request(s) was(were) sent.")
+    done(request_count, "request(s) sent.")
     done(record_count, "record(s) saved.")
 
 
@@ -153,27 +154,28 @@ def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=N
         try:
             with open(path, 'r', encoding="utf8") as f:
                 line = f.readline()
-                x = json.loads(line)
-                if 'createdAt' in x:
+                response = json.loads(line)
+                if 'createdAt' in response:
                     start_time = datetime.strptime(
-                        x['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8())
+                        response['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8())
                     info("Read record(s) from", start_time)
                     path = os.path.join(DIR_PATH, "data/temp-new-data.json")
+                    os.remove(path) if os.path.isfile(path) else ...
                     add_data = True
         except Exception as e:
             warn(e.args)
 
     while True:
 
-        x = crawl(API_GRAPHQL, COOKIES, HEADERS, payload)
+        response = crawl(API_GRAPHQL, COOKIES, HEADERS, payload)
         request_count += 1
 
-        loadMoreKey = x.json()[
+        loadMoreKey = response.json()[
             "data"]["userProfile"]["feeds"]["pageInfo"]["loadMoreKey"]
         payload["variables"]["loadMoreKey"] = loadMoreKey
         info("sending request", request_count, loadMoreKey)
 
-        for node in x.json()["data"]["userProfile"]["feeds"]["nodes"]:
+        for node in response.json()["data"]["userProfile"]["feeds"]["nodes"]:
             if is_first_node == True:
                 first_node = node
                 is_first_node = False
@@ -206,8 +208,88 @@ def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=N
         os.remove(origin_path)
         os.rename(path, origin_path)
 
-    done(request_count, "request(s) was(were) sent.")
+    done(request_count, "request(s) sent.")
     done(record_count, "record(s) saved.")
+
+
+def crawl_collections(user_id, path, mode="a", b_save_pics=False, record_count_limit=None, start_time=BASE_TIME, end_time=CURR_TIME, update=True) -> None:
+    ...
+
+
+def crawl_profile() -> None:
+    ...
+
+
+def crawl_following(user_id: str, path: str = os.path.join(DIR_PATH, "data/relation/following.json")) -> None:
+
+    crawl_relation(user_id, path, API_GET_FOLLOWING_LIST)
+
+
+def crawl_follower(user_id: str, path: str = os.path.join(DIR_PATH, "data/relation/follower.json")) -> None:
+
+    crawl_relation(user_id, path, API_GET_FOLLOWER_LIST)
+
+
+def crawl_relation(user_id: str, path: str, api: str) -> None:
+
+    debug(os.path.abspath(os.path.join(path, os.path.pardir)))
+    os.remove(path) if os.path.isfile(path) else os.makedirs(
+        os.path.abspath(os.path.join(path, os.path.pardir)), exist_ok=True)
+    # info("Old data has been removed.")
+
+    payload_relation = {
+        "limit": 200,
+        "username": user_id,
+        "loadMoreKey": ""
+    }
+
+    request_count = 0
+    record_count = 0
+    users = []
+
+    while True:
+        request_count += 1
+        info("sending request", request_count)
+
+        if request_count > 1:
+            payload_relation["loadMoreKey"] = response.json()["loadMoreKey"]
+
+        response = call_api(api, payload_relation)
+
+        for node in response.json()["data"]:
+            del node["decorations"]
+            del node["avatarImage"]
+            # save_json(node, path, "a")
+            users.append(node)
+            record_count += 1
+
+        if "loadMoreKey" not in response.json():
+            break
+
+    save_json_list(users, path)
+
+    done(request_count, "request(s) sent.")
+    done(record_count, "record(s) saved.")
+
+
+def get_mutual_following_list():
+    follower_list = read_multi_json_file(
+        os.path.join(DIR_PATH, "data/relation/follower.json"))
+    following_list = read_multi_json_file(
+        os.path.join(DIR_PATH, "data/relation/following.json"))
+
+    mutual_list = mutually_following(follower_list, following_list)
+    one_way_following_list = one_way_following(follower_list, following_list)
+    one_way_follower_list = one_way_follower(follower_list)
+
+    done("Mutually following with", len(mutual_list), "user(s).")
+
+    save_json_list(mutual_list, os.path.join(
+        DIR_PATH, "data/relation/nutually_following.json"))
+    save_json_list(one_way_following_list, os.path.join(
+        DIR_PATH, "data/relation/one_way_following_list.json"))
+    save_json_list(one_way_follower_list, os.path.join(
+        DIR_PATH, "data/relation/one_way_follower_list.json"))
 
 
 if __name__ == "__main__":
@@ -219,7 +301,7 @@ if __name__ == "__main__":
     user_id = "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC"
     ##################################################
 
-    b_save_pics = False  # Bool
+    b_save_pics = True  # Bool
 
     # operate posts created during 2021/12/01 and 2021/12/31
     # class datetime.datetime(year, month, day, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, *, fold=0)
@@ -235,8 +317,8 @@ if __name__ == "__main__":
     noti_end_time = CURR_TIME   # datetime
     noti_record_limit = None    # int or None
 
-    crawl_notifications(noti_path, "a", False,
-                        noti_record_limit, noti_start_time, noti_end_time)
+    # crawl_notifications(noti_path, "a", False,
+    #                     noti_record_limit, noti_start_time, noti_end_time)
 
     post_start_time = BASE_TIME  # datetime
     post_end_time = CURR_TIME   # datetime
@@ -246,3 +328,7 @@ if __name__ == "__main__":
 
     crawl_posts(user_id, post_path, "a", b_save_pics,
                 post_record_limit, post_start_time, post_end_time)
+
+    # crawl_following(user_id)
+    # crawl_follower(user_id)
+    # get_mutual_following_list()

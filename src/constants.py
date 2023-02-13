@@ -12,6 +12,7 @@ DIR_PATH = os.path.dirname(os.path.dirname(__file__))
 
 API_GRAPHQL = "https://web-api.okjike.com/api/graphql"
 API_GET_FOLLOWER_LIST = "https://api.ruguoapp.com/1.0/userRelation/getFollowerList"
+API_GET_FOLLOWING_LIST = "https://api.ruguoapp.com/1.0/userRelation/getFollowingList"
 
 HEADERS = {
     'content-type': 'application/json',

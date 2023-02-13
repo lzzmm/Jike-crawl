@@ -54,6 +54,11 @@ def hide():
 #                 FAILED: 暂时找不到新版 getFollowingList 接口
 
 
+def load_following_list(path_from: str = os.path.join(DIR_PATH, "config/user_list_temp.txt"), path_to: str = os.path.join(DIR_PATH, "config/user_id_list.txt")):
+    list = read_list_file(path_from)
+    save_list([user.split()[1] for user in list], path_to)
+
+
 if __name__ == "__main__":
     start_time = CURR_TIME - timedelta(days=1)  # datetime
     end_time = CURR_TIME    # datetime
@@ -62,7 +67,7 @@ if __name__ == "__main__":
     # may make that user feel troubled
     miss_feed_only = True
 
-    # crawl_following()  # haven't done yet
+    # crawl_following()  # haven't done yet # DONE: see main.ipynb
 
     # user_id_list = read_list_file(os.path.join(
     #     DIR_PATH, "config/user_id_list.txt"))
