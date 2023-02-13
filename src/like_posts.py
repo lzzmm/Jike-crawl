@@ -4,46 +4,46 @@
 
 
 from utils import *
+from config import *
 
 
-payload_like = {
-    "operationName": "LikeMessage",
-    "query": "mutation LikeMessage($messageType: MessageType!, $id: ID!) {        likeMessage(messageType: $messageType, id: $id)    }        ",
-    "variables": {
-        "messageType": "ORIGINAL_POST",
-        "id": ""
-    }
-}
+def like(user_ids: list, miss_feed_only=False, record_limit=5, start_time=BASE_TIME, end_time=CURR_TIME):
 
-payload_unlike = {
-    "operationName": "UnlikeMessage",
-    "variables": {
-        "messageType": "ORIGINAL_POST",
-        "id": ""
-    },
-    "query": "mutation UnlikeMessage($messageType: MessageType!, $id: ID!) {\n  unlikeMessage(messageType: $messageType, id: $id)\n}\n"
-}
+    for user_id in user_ids:
+
+        crawl_posts_fn(user_id,
+                       proc_node_fn,
+                       PAYLOAD_LIKE,
+                       miss_feed_only=miss_feed_only,
+                       user_id_list=user_ids,
+                       record_count_limit=record_limit,
+                       start_time=start_time,
+                       end_time=end_time)
+
+        if miss_feed_only == True:
+            break
 
 
-def like(user_id, miss_feed_only=False, record_limit=5, start_time=BASE_TIME, end_time=CURR_TIME):
+def unlike(user_ids: list, miss_feed_only=False, record_limit=5, start_time=BASE_TIME, end_time=CURR_TIME):
 
-    crawl_posts_fn(user_id,
-                   proc_node_fn,
-                   payload_like,
-                   miss_feed_only=miss_feed_only,
-                   record_count_limit=record_limit,
-                   start_time=start_time,
-                   end_time=end_time)
+    for user_id in user_ids:
+
+        crawl_posts_fn(user_id,
+                       proc_node_fn,
+                       PAYLOAD_UNLIKE,
+                       miss_feed_only=miss_feed_only,
+                       user_id_list=user_ids,
+                       record_count_limit=record_limit, start_time=start_time,
+                       end_time=end_time)
+
+        if miss_feed_only == True:
+            break
 
 
-def unlike(user_id, miss_feed_only=False, record_limit=5, start_time=BASE_TIME, end_time=CURR_TIME):
-
-    crawl_posts_fn(user_id,
-                   proc_node_fn,
-                   payload_unlike,
-                   miss_feed_only=miss_feed_only,
-                   record_count_limit=record_limit, start_time=start_time,
-                   end_time=end_time)
+def hide():
+    # TODO: API is not graphgl
+    x = op_post(PAYLOAD_HIDE)
+    debug(x)
 
 
 # DONE: search by name, multi user supports
@@ -60,16 +60,17 @@ if __name__ == "__main__":
     record_limit = 5        # int or None
     # like too many posts from a user in a short time
     # may make that user feel troubled
-    miss_feed_only = False
+    miss_feed_only = True
 
     # crawl_following()  # haven't done yet
 
     # user_id_list = read_list_file(os.path.join(
-    # dir_path, "cfgfiles/user_id_list.txt"))
+    #     DIR_PATH, "config/user_id_list.txt"))
 
-    # call if you have changed "cfgfiles/user_name_list.txt"
+    # call if you have changed "config/user_name_list.txt"
     user_id_list = update_user_id_list()
 
-    for user_id in user_id_list:
-        like(user_id)
-        # like(user_id, miss_feed_only, record_limit, start_time, end_time) # FIXME: may not work
+    # for user_id in user_id_list:
+    like(user_id_list)
+
+    # like(user_id_list, miss_feed_only, record_limit, start_time, end_time)

@@ -8,14 +8,8 @@ import json
 import requests
 from datetime import datetime, timedelta, tzinfo
 
-from utils import read_multi_json_file, UTC, GMT8
-
-
-dir_path = os.path.dirname(os.path.dirname(__file__))
-
-CURR_TIME = datetime.now(GMT8())
-CURR_YEAR = CURR_TIME.year
-BASE_YEAR = 2015
+from constants import *
+from utils import read_multi_json_file
 
 
 def summarize_notifications(path):
@@ -38,24 +32,24 @@ def summarize_notifications(path):
         followed_count_all
     ) = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-    for i in x:
-        user_num = i['actionItem']['usersCount']
+    for node in x:
+        user_num = node['actionItem']['usersCount']
         # match & case is in Python 3.10
-        if i['type'] == "LIKE_PERSONAL_UPDATE":
+        if node['type'] == "LIKE_PERSONAL_UPDATE":
             like_count_all += user_num
-        elif i['type'] == "COMMENT_PERSONAL_UPDATE":
+        elif node['type'] == "COMMENT_PERSONAL_UPDATE":
             comment_count_all += user_num
-        elif i['type'] == "LIKE_PERSONAL_UPDATE_COMMENT":
+        elif node['type'] == "LIKE_PERSONAL_UPDATE_COMMENT":
             like_comment_count_all += user_num
-        elif i['type'] == "REPLIED_TO_PERSONAL_UPDATE_COMMENT":
+        elif node['type'] == "REPLIED_TO_PERSONAL_UPDATE_COMMENT":
             reply_count_all += user_num
-        elif i['type'] == "AVATAR_GREET":
+        elif node['type'] == "AVATAR_GREET":
             avatar_greet_count_all += user_num
-        elif i['type'] == "USER_FOLLOWED" or i['type'] == "USER_SILENT_FOLLOWED":
+        elif node['type'] == "USER_FOLLOWED" or node['type'] == "USER_SILENT_FOLLOWED":
             followed_count_all += user_num
         # see README.md->Appendices for more data like CURIOSITY_ANSWER_REACTION
 
-        for user in i['actionItem']['users']:
+        for user in node['actionItem']['users']:
             if user['username'] not in users_all:
                 users_all[user['username']] = {
                     'screenName': user['screenName'],
@@ -64,26 +58,26 @@ def summarize_notifications(path):
             else:
                 users_all[user['username']]['count'] += 1
 
-            if i['type'] not in users_all[user['username']]:
-                users_all[user['username']][i['type']] = 1
+            if node['type'] not in users_all[user['username']]:
+                users_all[user['username']][node['type']] = 1
             else:
-                users_all[user['username']][i['type']] += 1
+                users_all[user['username']][node['type']] += 1
 
-        if datetime.strptime(i['updatedAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8()).year == (CURR_YEAR-1):
-            if i['type'] == "LIKE_PERSONAL_UPDATE":
+        if datetime.strptime(node['updatedAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8()).year == (CURR_YEAR-1):
+            if node['type'] == "LIKE_PERSONAL_UPDATE":
                 like_count += user_num
-            elif i['type'] == "COMMENT_PERSONAL_UPDATE":
+            elif node['type'] == "COMMENT_PERSONAL_UPDATE":
                 comment_count += user_num
-            elif i['type'] == "LIKE_PERSONAL_UPDATE_COMMENT":
+            elif node['type'] == "LIKE_PERSONAL_UPDATE_COMMENT":
                 like_comment_count += user_num
-            elif i['type'] == "REPLIED_TO_PERSONAL_UPDATE_COMMENT":
+            elif node['type'] == "REPLIED_TO_PERSONAL_UPDATE_COMMENT":
                 reply_count += user_num
-            elif i['type'] == "AVATAR_GREET":
+            elif node['type'] == "AVATAR_GREET":
                 avatar_greet_count += user_num
-            elif i['type'] == "USER_FOLLOWED" or i['type'] == "USER_SILENT_FOLLOWED":
+            elif node['type'] == "USER_FOLLOWED" or node['type'] == "USER_SILENT_FOLLOWED":
                 followed_count += user_num
 
-            for user in i['actionItem']['users']:
+            for user in node['actionItem']['users']:
                 if user['username'] not in users:
                     users[user['username']] = {
                         'screenName': user['screenName'],
@@ -144,42 +138,42 @@ def summarize_posts(path):
         pic_count_all
     ) = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-    for i in x:
+    for node in x:
 
         post_count[datetime.strptime(
-            i['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8()).year - BASE_YEAR] += 1
+            node['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8()).year - BASE_YEAR] += 1
 
-        like_count_all += i['likeCount']
-        comment_count_all += i['commentCount']
-        repost_count_all += i['repostCount']
-        share_count_all += i['shareCount']
-        pic_count_all += len(i['pictures'])
+        like_count_all += node['likeCount']
+        comment_count_all += node['commentCount']
+        repost_count_all += node['repostCount']
+        share_count_all += node['shareCount']
+        pic_count_all += len(node['pictures'])
 
-        if 'topic' in i and i['topic'] != None:
-            if i['topic']['id'] not in topics_all:
-                topics_all[i['topic']['id']] = {
-                    'content': i['topic']['content'],
+        if 'topic' in node and node['topic'] != None:
+            if node['topic']['id'] not in topics_all:
+                topics_all[node['topic']['id']] = {
+                    'content': node['topic']['content'],
                     'count': 1
                 }
             else:
-                topics_all[i['topic']['id']]['count'] += 1
+                topics_all[node['topic']['id']]['count'] += 1
 
-        if datetime.strptime(i['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8()).year == (CURR_YEAR-1):
+        if datetime.strptime(node['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8()).year == (CURR_YEAR-1):
 
-            like_count += i['likeCount']
-            comment_count += i['commentCount']
-            repost_count += i['repostCount']
-            share_count += i['shareCount']
-            pic_count += len(i['pictures'])
+            like_count += node['likeCount']
+            comment_count += node['commentCount']
+            repost_count += node['repostCount']
+            share_count += node['shareCount']
+            pic_count += len(node['pictures'])
 
-            if 'topic' in i and i['topic'] != None:
-                if i['topic']['id'] not in topics:
-                    topics[i['topic']['id']] = {
-                        'content': i['topic']['content'],
+            if 'topic' in node and node['topic'] != None:
+                if node['topic']['id'] not in topics:
+                    topics[node['topic']['id']] = {
+                        'content': node['topic']['content'],
                         'count': 1
                     }
                 else:
-                    topics[i['topic']['id']]['count'] += 1
+                    topics[node['topic']['id']]['count'] += 1
             # TODO: post time in a day, priority: low
 
     print("\n")
@@ -240,7 +234,7 @@ def summarize_posts(path):
 
 
 if __name__ == "__main__":
-    noti_path = os.path.join(dir_path, "data/notifications.json")
-    post_path = os.path.join(dir_path, "data/posts.json")
+    noti_path = os.path.join(DIR_PATH, "data/notifications.json")
+    post_path = os.path.join(DIR_PATH, "data/posts.json")
     summarize_posts(post_path)
     summarize_notifications(noti_path)

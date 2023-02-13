@@ -13,10 +13,6 @@ from utils import *
 BASE_TIME = datetime(2015, 3, 28, tzinfo=GMT8())  # Jike 1.0 online
 CURR_TIME = datetime.now(GMT8())  # current time
 
-dir_path = os.path.dirname(os.path.dirname(__file__))
-
-url = "https://web-api.okjike.com/api/graphql"
-
 payload = {
     "operationName": "RemoveMessage",
     "variables": {
@@ -36,7 +32,7 @@ def remove(id):
     """
     payload["variables"]["id"] = id
     x = op_post(payload)
-    print(x, x.json())
+    warn(id, x, x.json())
 
 
 def clear(post_path, start_time, end_time, limit=None):
@@ -55,24 +51,24 @@ def clear(post_path, start_time, end_time, limit=None):
 
             if time > end_time:
                 continue
-            
+
             if (limit != None and count >= limit) or time < start_time:
                 break
 
             count += 1
             id = x['id']
-            print(id, time)
+            info("processing", id, "created at", time)
             ################# DANGER ZONE ##################
             ################################################
             # uncomment next line to remove all your posts #
             # remove(id) # remove posts by id              #
             ################################################
 
-        print(count, "record(s) operated.")
+        done(count, "record(s) operated.")
 
 
 if __name__ == "__main__":
-    post_path = os.path.join(dir_path, "data/posts.json")
+    post_path = os.path.join(DIR_PATH, "data/posts.json")
 
     # operate posts created during 2021/12/01 and 2021/12/31
     # class datetime.datetime(year, month, day, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, *, fold=0)

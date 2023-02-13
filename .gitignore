@@ -1,2 +1,3 @@
-/cfgfiles/user_id_list.txt
+/config/cookies.txt
+/config/user_id_list.txt
 /src/__pycache__/*

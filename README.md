@@ -49,7 +49,7 @@ Login to [Jike Website](https://web.okjike.com/), press `F12` to open DevTools. 
 
 Select one `profile?username=...` request and copy `username` from `Request URL` into `id` in `main()` in `src/crawl.py` file.
 
-Select one `graphql` request and copy value of `cookie` from `Request headers` into `cfgfiles/cookies.txt` file.
+Select one `graphql` request and copy value of `cookie` from `Request headers` into `config/cookies.txt` file.
 
 ![devtools](img/devtools.png)
 
@@ -131,7 +131,7 @@ run `delete_posts.py`。
 
 #### Like / unlike posts from user list
 
-Edit user name in `cfgfiles/user_name_list.txt`
+Edit user name in `config/user_name_list.txt`
 
 run `like_posts.py`
 
@@ -175,7 +175,7 @@ run `like_posts.py`
 
 1. 进入开发者模式。在 [即刻网页版](https://web.okjike.com/) 中登录自己的即刻账号，并进入个人主页。按 `F12` 打开开发者工具。切换到 `网络(Network)`，过滤 `Fetch/XHR`，刷新页面，此时下方会出现请求列表，罗列了请求的名称、状态等信息。
 
-2. 获取cookie。在请求列表中，任选一个名称为 `graphql` 的请求，单击 `标头(Headers)`，找到 `cookie` 字段并复制全文，粘贴到 `Jike-crawl/cfgfiles/cookies.txt`。
+2. 获取cookie。在请求列表中，任选一个名称为 `graphql` 的请求，单击 `标头(Headers)`，找到 `cookie` 字段并复制全文，粘贴到 `Jike-crawl/config/cookies.txt`。
 
     ![devtools](img/devtools_cn.png)
 
@@ -275,6 +275,12 @@ run `like_posts.py`
 ### datetime
 
 [docs of datetime](https://docs.python.org/zh-cn/3/library/datetime.html)
+
+### ignore cookies.txt
+
+```sh
+git update-index --assume-unchanged config/cookies.txt
+```
 
 ### query
 
@@ -480,6 +486,32 @@ payload
         "id": ""
     },
     "query": "mutation UnlikeMessage($messageType: MessageType!, $id: ID!) {\n  unlikeMessage(messageType: $messageType, id: $id)\n}\n"
+}
+```
+
+#### collect & uncollect
+
+payload
+
+```json
+{
+    "operationName": "CollectMessage",
+    "variables": {
+        "messageId": "63e4ee1a74aa215f9158864e",
+        "messageType": "ORIGINAL_POST"
+    },
+    "query": "mutation CollectMessage($messageType: MessageType!, $messageId: ID!) {\n  collectMessage(messageType: $messageType, id: $messageId)\n}\n"
+}
+```
+
+```json
+{
+    "operationName": "UncollectMessage",
+    "variables": {
+        "messageId": "63e4ee1a74aa215f9158864e",
+        "messageType": "ORIGINAL_POST"
+    },
+    "query": "mutation UncollectMessage($messageType: MessageType!, $messageId: ID!) {\n  uncollectMessage(messageType: $messageType, id: $messageId)\n}\n"
 }
 ```
 

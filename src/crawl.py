@@ -6,15 +6,13 @@ import os
 import sys
 import json
 import requests
-from datetime import datetime, timedelta, tzinfo
+from datetime import datetime
 
 from utils import *
+from constants import *
 
 
-dir_path = os.path.dirname(os.path.dirname(__file__))
-
-
-url = "https://web-api.okjike.com/api/graphql"
+DIR_PATH = os.path.dirname(os.path.dirname(__file__))
 
 
 def proc_node(node, path, mode, start_time, end_time, end, record_count, b_save_pics=False, record_count_limit=None):
@@ -33,22 +31,25 @@ def proc_node(node, path, mode, start_time, end_time, end, record_count, b_save_
     """
 
     time = datetime.strptime(
-        node['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(UTC())
+        node['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8())
+    
+    debug(time)
 
     # TODO: this should not be here and should be outside this function
-    if time >= start_time and time <= end_time:
+    # time should not euqal to start_time which leads to re-add of first node
+    if time > start_time and time <= end_time:
         save_json(node, path, mode)
         if b_save_pics and ("pictures" in node) and len(node["pictures"]) != 0:
             save_pics(node)
         record_count += 1
 
-    if (record_count_limit != None and record_count >= record_count_limit) or (time < start_time):
+    if (record_count_limit != None and record_count >= record_count_limit) or (time <= start_time):
         end = True
 
     return end, record_count
 
 
-def crawl_notifications(path, mode="a", b_save_pics=False, record_count_limit=None, start_time=BASE_TIME, end_time=CURR_TIME):
+def crawl_notifications(path, mode="a", b_save_pics=False, record_count_limit=None, start_time=BASE_TIME, end_time=CURR_TIME, update=True):
     """
     loop and crawl all/num notifications from start_time to end_time and save into database/file
     TODO: Incremental update like "crawl_posts"
@@ -59,38 +60,66 @@ def crawl_notifications(path, mode="a", b_save_pics=False, record_count_limit=No
     - start_time: datetime object
     - end_time: datetime object, later than start_time
     """
+    debug("crawl_notifications(%s, %s)" % (path, mode))
 
-    payload = {
-        "operationName": "ListNotification",
-        "variables": {},
-        "query": open(os.path.join(dir_path, "query/query_notifications.txt")).read()
-    }
+    payload = PAYLOAD_LIST_NOTIFICATION
 
+    end = False
+    add_data = False
+    is_first_node = True
+    first_node_inserted = False
     request_count = 0
     record_count = 0
-    end = False
+    origin_path = path
+    first_node = {}
+
+    if update == True:
+        try:
+            with open(path, 'r', encoding="utf8") as f:
+                line = f.readline()
+                x = json.loads(line)
+                if 'createdAt' in x:
+                    start_time = datetime.strptime(
+                        x['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8())
+                    info("Read record(s) from", start_time)
+                    path = os.path.join(
+                        DIR_PATH, "data/temp-new-data-info.json")
+                    add_data = True
+        except Exception as e:
+            warn(e.args)
 
     while True:
 
-        x = crawl(url, cookies, headers, payload)
+        x = crawl(API_GRAPHQL, COOKIES, HEADERS, payload)
         request_count += 1
 
         loadMoreKey = x.json()[
             "data"]["viewer"]["notifications"]["pageInfo"]["loadMoreKey"]
         payload["variables"]["loadMoreKey"] = loadMoreKey
-        print(request_count, loadMoreKey)
+        info("sending request", request_count, loadMoreKey)
 
         for node in x.json()["data"]["viewer"]["notifications"]["nodes"]:
+
             end, record_count = proc_node(
                 node, path, mode, start_time, end_time, end, record_count, b_save_pics, record_count_limit)
+
             if end == True:
                 break
 
         if end == True or loadMoreKey == None:
             break
 
-    print(request_count, "request(s) was(were) sent.")
-    print(record_count, "record(s) saved.")
+    if add_data == True:
+
+        with open(origin_path, 'r', encoding='utf-8') as ori_f:
+            with open(path, 'a', encoding='utf-8') as new_f:
+                new_f.write(ori_f.read())
+
+        os.remove(origin_path)
+        os.rename(path, origin_path)
+
+    done(request_count, "request(s) was(were) sent.")
+    done(record_count, "record(s) saved.")
 
 
 def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=None, start_time=BASE_TIME, end_time=CURR_TIME, update=True):
@@ -106,13 +135,10 @@ def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=N
     - end_time: datetime object, later than start_time
     """
 
-    payload = {
-        "operationName": "UserFeeds",
-        "query": open(os.path.join(dir_path, "query/query_user_feeds.txt")).read(),
-        "variables": {
-            "username": user_id
-        }
-    }
+    debug("crawl_posts(%s, %s, %s)" % (user_id, path, mode))
+
+    payload = PAYLOAD_USER_FEEDS
+    payload["variables"]["username"] = user_id
 
     end = False
     add_data = False
@@ -125,27 +151,27 @@ def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=N
 
     if update == True:
         try:
-            with open(post_path, 'r', encoding="utf8") as f:
+            with open(path, 'r', encoding="utf8") as f:
                 line = f.readline()
                 x = json.loads(line)
                 if 'createdAt' in x:
                     start_time = datetime.strptime(
                         x['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8())
-                    print("Read record(s) from", start_time)
-                    path = os.path.join(dir_path, "data/temp-new-data.json")
+                    info("Read record(s) from", start_time)
+                    path = os.path.join(DIR_PATH, "data/temp-new-data.json")
                     add_data = True
-        except Exception:
-            """"""
+        except Exception as e:
+            warn(e.args)
 
     while True:
 
-        x = crawl(url, cookies, headers, payload)
+        x = crawl(API_GRAPHQL, COOKIES, HEADERS, payload)
         request_count += 1
 
         loadMoreKey = x.json()[
             "data"]["userProfile"]["feeds"]["pageInfo"]["loadMoreKey"]
         payload["variables"]["loadMoreKey"] = loadMoreKey
-        print(request_count, loadMoreKey)
+        info("sending request", request_count, loadMoreKey)
 
         for node in x.json()["data"]["userProfile"]["feeds"]["nodes"]:
             if is_first_node == True:
@@ -160,7 +186,7 @@ def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=N
                 first_node_inserted = True
                 if end == True:
                     break
-            
+
             # TODO: rewrite proc_node and make those function call more clean and effective
             #       justice if need to process this node then call "proc_node"
             end, record_count = proc_node(node,
@@ -180,17 +206,17 @@ def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=N
         os.remove(origin_path)
         os.rename(path, origin_path)
 
-    print(request_count, "request(s) was(were) sent.")
-    print(record_count, "record(s) saved.")
+    done(request_count, "request(s) was(were) sent.")
+    done(record_count, "record(s) saved.")
 
 
 if __name__ == "__main__":
-    noti_path = os.path.join(dir_path, "data/notifications.json")
-    post_path = os.path.join(dir_path, "data/posts.json")
+    noti_path = os.path.join(DIR_PATH, "data/notifications.json")
+    post_path = os.path.join(DIR_PATH, "data/posts.json")
 
     ##################################################
     # ATTENTION: Replace with your own Jike user id. #
-    user_id = "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC" #
+    user_id = "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC"
     ##################################################
 
     b_save_pics = False  # Bool
@@ -209,8 +235,8 @@ if __name__ == "__main__":
     noti_end_time = CURR_TIME   # datetime
     noti_record_limit = None    # int or None
 
-    # crawl_notifications(
-    # noti_path, "a", False, noti_record_limit, noti_start_time, noti_end_time)
+    crawl_notifications(noti_path, "a", False,
+                        noti_record_limit, noti_start_time, noti_end_time)
 
     post_start_time = BASE_TIME  # datetime
     post_end_time = CURR_TIME   # datetime
@@ -218,5 +244,5 @@ if __name__ == "__main__":
 
     sort_nodes(post_path)
 
-    # crawl_posts(user_id, post_path, "a", b_save_pics,
-                # post_record_limit, post_start_time, post_end_time)
+    crawl_posts(user_id, post_path, "a", b_save_pics,
+                post_record_limit, post_start_time, post_end_time)
