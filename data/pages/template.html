@@ -7,8 +7,13 @@
 <head>
     <meta content="text/html; charset=utf-8" />
     <style>
+        @font-face {
+            font-family: CamingoCodeRegular;
+            src: url("fonts/CamingoCode-Regular-1.woff");
+        }
+
         .main {
-            width: 650px;
+            width: 660px;
             margin: auto;
             position: absolute;
             top: 0;
@@ -20,6 +25,11 @@
         .post {
             /* width: 500px; */
             margin: 5px;
+        }
+
+        .content {
+            line-height: 23px;
+            color: #233333;
         }
 
         .cropped {
@@ -38,6 +48,37 @@
             /* margin: 0px 0px 0px 20px; */
         }
 
+        code {
+            font-family: CamingoCodeRegular, Consolas, "Fira Code", Menlo, Monaco, "Courier New", monospace;
+            padding: 2px 4px;
+            font-size: 90%;
+        }
+
+        code.highlight {
+            color: #03aaee;
+            background-color: #f9f2f4;
+            border-radius: 4px;
+        }
+
+        h2>code {
+            color: #111111;
+            background-color: transparent;
+        }
+
+        a {
+            background-color: #f0fdfe;
+            color: #10aadd;
+        }
+
+        .cropped>a {
+            background-color: transparent !important;
+        }
+
+        .like>code.highlight {
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
         .footer {
             padding-bottom: 10px;
         }
@@ -49,14 +90,37 @@
         <h1>JIKE Archive</h1>
     </div>
     <div>
-        {%data%}
+        Generated at <code>{%curr-time%}</code><br />
+        <hr>
+        {%post%}
     </div>
 </body>
 <footer>
     <div class="footer">
-        <h2>Powered by <a href="https://github.com/lzzmm/Jike-crawl" target="_blank">lzzmm / Jike-crawl</a>
+        <div>
+            <code class="highlight">{%post-count%}</code>
+            <code> post(s) read<br/>from </code><code class="highlight"><a href="{%post-data-url%}">{%post-data-url%}</a></code>
+        </div>
+        <br /><hr /><br />
+        <div class="like">
+            <code class="highlight">
+                👍 like
+            </code>
+            <code class="highlight">
+                💬 comment
+            </code>
+            <code class="highlight">
+                🚀 share
+            </code>
+            <code class="highlight">
+                🔁 repost
+            </code>
+        </div>
+        <br />
+        <hr>
+        <h2>Powered by <a href="https://github.com/lzzmm/Jike-crawl" target="_blank"><code>lzzmm/Jike-crawl</code></a>
             <br />
-            即刻<a href="https://web.okjike.com/u/D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC" target="_blank">@慵懒致命之炸毛</a>
+            即刻 <a href="https://web.okjike.com/u/D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC" target="_blank">@慵懒致命之炸毛</a>
         </h2>
     </div>
 </footer>
