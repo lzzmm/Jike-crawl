@@ -9,7 +9,7 @@ import requests
 from datetime import datetime
 
 from utils import *
-from constants import *
+from common import *
 
 
 DIR_PATH = os.path.dirname(os.path.dirname(__file__))
@@ -49,7 +49,7 @@ def proc_node(node, path, mode, start_time, end_time, end, record_count, b_save_
     return end, record_count
 
 
-def crawl_notifications(path, mode="a", b_save_pics=False, record_count_limit=None, start_time=BASE_TIME, end_time=CURR_TIME, update=True):
+def crawl_notifications(path, mode="a", b_save_pics=False, record_count_limit=None, start_time=BASE_TIME, end_time=datetime.now(GMT8()), update=True):
     """
     loop and crawl all/num notifications from start_time to end_time and save into database/file
     TODO: Incremental update like "crawl_posts"
@@ -137,6 +137,7 @@ def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=N
     """
 
     debug("crawl_posts(%s, %s, %s)" % (user_id, path, mode))
+    info("From:", start_time, "to:", end_time)
 
     payload = PAYLOAD_USER_FEEDS
     payload["variables"]["username"] = user_id
@@ -212,7 +213,7 @@ def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=N
     done(record_count, "record(s) saved.")
 
 
-def crawl_collections(user_id, path, mode="a", b_save_pics=False, record_count_limit=None, start_time=BASE_TIME, end_time=CURR_TIME, update=True) -> None:
+def crawl_collections(user_id, path, mode="a", b_save_pics=False, record_count_limit=None, start_time=BASE_TIME, end_time=datetime.now(GMT8()), update=True) -> None:
     ...
 
 
@@ -293,6 +294,7 @@ def get_mutual_following_list():
 
 
 if __name__ == "__main__":
+    CURR_TIME = datetime.now(GMT8())
     noti_path = os.path.join(DIR_PATH, "data/notifications.json")
     post_path = os.path.join(DIR_PATH, "data/posts.json")
 

@@ -9,7 +9,7 @@ import requests
 from datetime import datetime, timedelta, tzinfo
 
 from config import *
-from constants import *
+from common import *
 
 
 def refresh_cookies():
@@ -65,6 +65,7 @@ def handle_errors(response, halt=True) -> None:
     - halt: bool, if true, stop program when unexpected error occurs
     """
     warn(response.json()["errors"][0]["extensions"]["code"])
+    debug(response.json())
 
     if response.json()["errors"][0]["extensions"]["code"] == "UNAUTHENTICATED":
         refresh_cookies()
@@ -96,9 +97,12 @@ def crawl(url, cookies, headers, payload) -> requests.Response:
     # The "has_key" method has been removed in Python 3
     # TODO: Needs to improve here
     try:
-        if response is None or 'errors' in response.json():
+        if 'errors' in response.json():
+
             handle_errors(response)
-            response = crawl(url, cookies, headers, payload)
+            # must use new COOKIES here
+            response = crawl(url, COOKIES, headers, payload)
+
     except json.JSONDecodeError or UnboundLocalError as e:
         err(e.args)
 
@@ -106,7 +110,7 @@ def crawl(url, cookies, headers, payload) -> requests.Response:
 
 
 # haven't finished yet, but works well
-def crawl_posts_fn(user_id: str, proc_node_fn, op_payload=None, miss_feed_only: bool = False, user_id_list: list = None, record_count_limit=None, start_time=BASE_TIME, end_time=CURR_TIME, update=False) -> list:
+def crawl_posts_fn(user_id: str, proc_node_fn, op_payload=None, miss_feed_only: bool = False, user_id_list: list = None, record_count_limit=None, start_time=BASE_TIME, end_time=datetime.now(GMT8()), update=False) -> list:
     """
     loop and crawl posts from user_id and do something TODO: rewrite, and some bugs are still remaining, do fn after crawled, don't want to reconstruct it because it is a mount of shit
     ---
@@ -270,7 +274,6 @@ def call_api(api, payload) -> requests.Response:
     try:
         response = op_post(payload, api, headers)
         # debug(response, response.json())
-        debug(response, response.json())
         return response
 
     except Exception as e:
@@ -398,45 +401,45 @@ def print_colored(fmt: str, *args, color="default") -> None:
 #   logger                          #
 #####################################
 def debug(*values: object, b_log=True) -> None:
-    if LOG_LEVEL < 1:
+    if PRINT_LEVEL < 1:
         print("\033[34m[DEBUG]", *values, "\033[0m")
-        if b_log == True:
-            log("[DEBUG]", *values)
+    if LOG_LEVEL < 1 and b_log == True:
+        log("[DEBUG]", *values)
 
 
 def info(*values: object, b_log=True) -> None:
-    if LOG_LEVEL < 2:
+    if PRINT_LEVEL < 2:
         print("\033[36m[INFO]", *values, "\033[0m")
-        if b_log == True:
-            log("[INFO]", *values)
+    if LOG_LEVEL < 2 and b_log == True:
+        log("[INFO]", *values)
 
 
 def done(*values: object, b_log=True) -> None:
-    if LOG_LEVEL < 3:
+    if PRINT_LEVEL < 3:
         print("\033[32m[DONE]", *values, "\033[0m")
-        if b_log == True:
-            log("[DONE]", *values)
+    if LOG_LEVEL < 3 and b_log == True:
+        log("[DONE]", *values)
 
 
 def warn(*values: object, b_log=True) -> None:
-    if LOG_LEVEL < 4:
+    if PRINT_LEVEL < 4:
         print("\033[35m[WARN]", *values, "\033[0m")
-        if b_log == True:
-            log("[WARN]", *values)
+    if LOG_LEVEL < 4 and b_log == True:
+        log("[WARN]", *values)
 
 
 def err(*values: object, b_log=True) -> None:
-    if LOG_LEVEL < 5:
+    if PRINT_LEVEL < 5:
         print("\033[31m[ERROR]", *values, "\033[0m", file=sys.stderr)
-        if b_log == True:
-            log("[ERROR]", *values)
+    if LOG_LEVEL < 5 and b_log == True:
+        log("[ERROR]", *values)
 
 
 def crit(*values: object, b_log=True) -> None:
-    if LOG_LEVEL < 6:
+    if PRINT_LEVEL < 6:
         print("\033[33m[CRITICAL]", *values, "\033[0m", file=sys.stderr)
-        if b_log == True:
-            log("[CRITICAL]", *values)
+    if LOG_LEVEL < 6 and b_log == True:
+        log("[CRITICAL]", *values)
 
 
 #####################################
@@ -513,10 +516,17 @@ def read_list_file(path, lines=None) -> list:
     return x
 
 
+def read_file(path) -> str:
+    ...
+
+
 #####################################
 #  write file                       #
 #####################################
 def log(*values: object, path: str = "data/logs/log.txt") -> None:
+
+    CURR_TIME = datetime.now(GMT8())
+
     try:
         with open(os.path.join(DIR_PATH, path), 'a', encoding='utf-8') as f:
 

@@ -8,7 +8,7 @@ import json
 import requests
 from datetime import datetime, timedelta, tzinfo
 
-from constants import *
+from common import *
 from utils import read_multi_json_file
 
 
@@ -115,6 +115,7 @@ def summarize_notifications(path):
 
     print("")
     print("Your likes and comments are \033[4mNOT\033[0m included.")
+    CURR_TIME = datetime.now(GMT8())
     print("Generated at", CURR_TIME)
     print("")
 
@@ -229,6 +230,7 @@ def summarize_posts(path):
 
     print("Deleted data is \033[4mNOT\033[0m included.")
     print("Your likes and comments are included.")
+    CURR_TIME = datetime.now(GMT8())
     print("Generated at", CURR_TIME)
     print("")
 

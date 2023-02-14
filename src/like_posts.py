@@ -7,7 +7,7 @@ from utils import *
 from config import *
 
 
-def like(user_ids: list, miss_feed_only=False, record_limit=5, start_time=BASE_TIME, end_time=CURR_TIME):
+def like(user_ids: list, miss_feed_only=False, record_limit=5, start_time=BASE_TIME, end_time=datetime.now(GMT8())):
 
     for user_id in user_ids:
 
@@ -60,6 +60,7 @@ def load_following_list(path_from: str = os.path.join(DIR_PATH, "config/user_lis
 
 
 if __name__ == "__main__":
+    CURR_TIME = datetime.now(GMT8())
     start_time = CURR_TIME - timedelta(days=1)  # datetime
     end_time = CURR_TIME    # datetime
     record_limit = 5        # int or None

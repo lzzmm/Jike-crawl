@@ -9,9 +9,7 @@ import requests
 from datetime import datetime, timedelta, tzinfo
 
 from utils import *
-
-BASE_TIME = datetime(2015, 3, 28, tzinfo=GMT8())  # Jike 1.0 online
-CURR_TIME = datetime.now(GMT8())  # current time
+from common import CURR_TIME, BASE_TIME
 
 payload = {
     "operationName": "RemoveMessage",
@@ -39,6 +37,8 @@ def clear(post_path, start_time, end_time, limit=None):
     # DONE: clear all posts in time range
     # Priority: low, because you can easily delete your account directly
     # DONE: time range or other condition
+    warn("There will be some warn(s) when truly removing post(s).")
+
     with open(post_path, 'r', encoding="utf8") as f:
         count = 0
         line = f.readline()
@@ -68,6 +68,7 @@ def clear(post_path, start_time, end_time, limit=None):
 
 
 if __name__ == "__main__":
+    CURR_TIME = datetime.now(GMT8())
     post_path = os.path.join(DIR_PATH, "data/posts.json")
 
     # operate posts created during 2021/12/01 and 2021/12/31

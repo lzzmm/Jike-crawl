@@ -4,7 +4,7 @@
 
 # All constants below should not be changed
 
-DEBUG = False
+DEBUG = True
 
 # DEBUG 0
 # INFO 1
@@ -14,3 +14,4 @@ DEBUG = False
 # CRITICAL 5
 # CLOSE ALL 6
 LOG_LEVEL = 0 if DEBUG else 1
+PRINT_LEVEL = 1
