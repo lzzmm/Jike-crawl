@@ -1,0 +1,62 @@
+<!--
+    create at: 2023-02-13T21:28:47Z+08:00
+    author:    lzzmm<2313681700@qq.com>
+-->
+<!DOCTYPE html>
+
+<head>
+    <meta content="text/html; charset=utf-8" />
+    <style>
+        .main {
+            width: 650px;
+            margin: auto;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+        .post {
+            /* width: 500px; */
+            margin: 5px;
+        }
+
+        .cropped {
+            display: inline-block;
+            width: 160px;
+            height: 160px;
+            overflow: hidden;
+            margin: 10px;
+        }
+
+        .cropped img {
+            /* width: 150px; */
+            height: 145px;
+            /* object-fit: cover; */
+            /* object-position: 20% 10%;  */
+            /* margin: 0px 0px 0px 20px; */
+        }
+
+        .footer {
+            padding-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body class="main">
+    <div>
+        <h1>JIKE Archive</h1>
+    </div>
+    <div>
+        {%data%}
+    </div>
+</body>
+<footer>
+    <div class="footer">
+        <h2>Powered by <a href="https://github.com/lzzmm/Jike-crawl" target="_blank">lzzmm / Jike-crawl</a>
+            <br />
+            即刻<a href="https://web.okjike.com/u/D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC" target="_blank">@慵懒致命之炸毛</a>
+        </h2>
+    </div>
+</footer>

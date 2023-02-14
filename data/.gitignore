@@ -1,4 +1,6 @@
 *.json
+*.html
 !.gitignore
 !pics
 !logs
+!pages/template.html
