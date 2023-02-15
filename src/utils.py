@@ -11,8 +11,21 @@ from datetime import datetime, timedelta, tzinfo
 from config import *
 from common import *
 
+def reload_cookies() -> dict:
+    
+    global COOKIES
+    
+    COOKIES = {
+        'cookie': open(os.path.join(DIR_PATH, 'config/cookies.txt')).read()
+    }
+    
+    done("Cookies reloaded.")
+    
+    return COOKIES
 
-def refresh_cookies():
+def refresh_cookies() -> dict:
+
+    global COOKIES
 
     warn("accessToken expired, trying to refresh accessToken...")
 
@@ -38,6 +51,8 @@ def refresh_cookies():
     with open(os.path.join(DIR_PATH, 'config/cookies.txt'), 'w', encoding="utf8") as f:
         f.write(COOKIES['cookie'])
         done("Token updated.")
+        
+    return COOKIES
 
 
 def get_access_token(path: str = os.path.join(DIR_PATH, 'config/cookies.txt')) -> str:
