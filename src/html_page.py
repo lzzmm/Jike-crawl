@@ -19,6 +19,8 @@ from utils import *
 #       fix pics
 # DONE: function to call
 
+config_show_pic = True
+
 post_data_path = os.path.join(DIR_PATH, "data/posts.json").replace("\\", "/")
 coll_data_path = os.path.join(DIR_PATH, "data/collections.json")
 
@@ -130,7 +132,7 @@ def post_page(json_data_path: str = post_data_path, html_path: str = post_html_u
             "user-bio": "",
             "create-time": str(creat_at.__format__("%Y-%m-%d %X (%Z)")),
             "post-topic-content": "",
-            "post-content": post["content"].replace("\n", "<br/>"),
+            "post-content": "",
             "post-pics": "",
             "post-target": "",
             "post-linkInfo": "",
@@ -160,18 +162,45 @@ def post_page(json_data_path: str = post_data_path, html_path: str = post_html_u
                     "\n", "<br/>") + "</div>"
 
         if "topic" in post and post["topic"] is not None:
-            post_data["post-topic-content"] = "<h3><code class=\"highlight\">"
+            post_data["post-topic-content"] = "<h3><code class=\"topic\">"
             post_data["post-topic-content"] += post["topic"]["content"]
             post_data["post-topic-content"] += "</code></h3>"
 
-        post_pic_path = os.path.join(pic_path, post["id"])
-        for pic in post["pictures"]:
-            pic = os.path.join(post_pic_path, pic["picUrl"].split("?")[
-                               0].split("/")[-1])
-            post_data["post-pics"] += "<div class=\"cropped\"><a href=" + pic + \
-                " target=\"_blank\" title=\"open picture\">"
-            post_data["post-pics"] += "<img src=\"" + \
-                pic + "\" alt=\"" + pic + "\" ></a></div>"
+        if config_show_pic == True:
+            post_pic_path = os.path.join(pic_path, post["id"])
+            if os.path.isdir(post_pic_path):
+                for pic in post["pictures"]:
+                    pic = os.path.join(post_pic_path, pic["picUrl"].split("?")[
+                                    0].split("/")[-1])
+                    if os.path.isfile(pic):
+                        post_data["post-pics"] += "<div class=\"cropped\"><a href=" + pic + \
+                            " target=\"_blank\" title=\"open picture\">"
+                        post_data["post-pics"] += "<img src=\"" + \
+                            pic + "\" alt=\"" + pic + "\" ></a></div>"
+
+        post_content_old: str = post["content"].replace("\n", "<br/>")
+        if "urlsInText" in post:
+            for url in post["urlsInText"]:
+                new_url = ""
+                if url["url"].count("jike://page.jk/hashtag/") != 0:
+                    new_url = "https://web.okjike.com/topic/" + \
+                        url["url"].split("?refTopicId=")[1]
+                elif url["url"].count("jike://page.jk/user/") != 0:
+                    new_url = "https://web.okjike.com/u/" + \
+                        url["url"].split("/user/")[1]
+                else:
+                    new_url = url["url"]
+
+                new_content = "<a href=\"" + \
+                    new_url + "\" target=\"_blank\">" + \
+                    url["title"] + "</a>"
+                # debug(post_content_old.count(url["originalUrl"]))
+                # debug(url["originalUrl"], new_content)
+                post_content_old = post_content_old.replace(
+                    url["originalUrl"], new_content)
+
+        # post_content_old = post_content_old.replace()
+        post_data["post-content"] = post_content_old
 
         if post["type"] == "REPOST":
             post_data["post-target"] += "<blockquote><div>"
@@ -184,7 +213,7 @@ def post_page(json_data_path: str = post_data_path, html_path: str = post_html_u
                     post_data["post-target"] += "</div>"
                 if "topic" in post["target"] and post["target"]["topic"] is not None:
                     post_data["post-target"] += "<div>"
-                    post_data["post-target"] += "<h4><code class=\"highlight\">" + \
+                    post_data["post-target"] += "<h4><code class=\"topic\">" + \
                         post["target"]["topic"]["content"] + "</code></h4>"
                     post_data["post-target"] += "</div>"
                 post_data["post-target"] += post["target"]["content"].replace(
@@ -260,6 +289,7 @@ if __name__ == "__main__":
     post_page(data_source="User Posts")
     webbrowser.open_new_tab(post_html_url)
     done(post_html_url, "opened.")
-    post_page(coll_data_path, coll_html_url, coll_pic, True, "User Collections")
+    post_page(coll_data_path, coll_html_url,
+              coll_pic, True, "User Collections")
     webbrowser.open_new_tab(coll_html_url)
     done(coll_html_url, "opened.")
