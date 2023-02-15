@@ -257,9 +257,39 @@ def get_user_id(user_name: str) -> str:
         err("In get_user_id!", e.args)
 
 
-def call_api(api, payload) -> requests.Response:
+def call_api_get(api: str, payload: dict = None) -> requests.Response:
+    headers = HEADERS
+    headers["referer"] = "https://web.okjike.com/"
+    headers["x-jike-access-token"] = get_access_token()
+    headers["x-jike-refresh-token"] = get_refresh_token()
+
+    try:
+
+        if payload is not None:
+            response = requests.get(url=api, cookies=COOKIES,
+                                    headers=headers,
+                                    data=json.dumps(payload))
+        else:
+            response = requests.post(url=api, cookies=COOKIES, headers=headers)
+
+    except requests.exceptions.ConnectionError as e:
+        err("Connection error", e.args)
+
+    try:
+        if 'errors' in response.json():
+
+            handle_errors(response, halt=False)
+            response = op_post(payload)
+
+    except Exception as e:
+        err(e.args)
+
+    return response
+
+
+def call_api_post(api: str, payload: dict = None) -> requests.Response:
     """
-    call api
+    call api post
     ---
     args:
     """
@@ -277,7 +307,7 @@ def call_api(api, payload) -> requests.Response:
         return response
 
     except Exception as e:
-        err("In call_api", e.args)
+        err("In call_api_post", e.args)
 
 
 def op_post(payload, url=API_GRAPHQL, headers=HEADERS, cookies=COOKIES) -> requests.Response:  # 这四个作为一个类
@@ -286,12 +316,14 @@ def op_post(payload, url=API_GRAPHQL, headers=HEADERS, cookies=COOKIES) -> reque
     """
     # TODO: optimize code structure
 
-    assert payload is not None
-
     try:
-        response = requests.post(url, cookies=cookies,
-                                 headers=headers,
-                                 data=json.dumps(payload))
+
+        if payload is not None:
+            response = requests.post(url, cookies=cookies,
+                                     headers=headers,
+                                     data=json.dumps(payload))
+        else:
+            response = requests.post(url, cookies=cookies, headers=headers)
 
     except requests.exceptions.ConnectionError as e:
         err("Connection error", e.args)
@@ -561,7 +593,7 @@ def save_list(list: list, path: str, mode="w") -> None:
     done("List saved at", path)
 
 
-def save_pics(node) -> None:
+def save_pics(node, path: str = "data/pics/") -> None:
     """
     save pictures in post
     ---
@@ -569,7 +601,7 @@ def save_pics(node) -> None:
     - node: json object with a list of pictures info to save
     """
 
-    pic_path = os.path.join(DIR_PATH, "data/pics/", node["id"])
+    pic_path = os.path.join(DIR_PATH, path, node["id"])
     os.makedirs(pic_path, exist_ok=True)
 
     for pic in node["pictures"]:
@@ -593,6 +625,9 @@ def save_json(node, path, mode, indent=None) -> None:
     - mode: "a" for add, "w" for overwrite
     - indent: int, default: None
     """
+    if not os.path.isfile(path):
+        os.makedirs(os.path.abspath(os.path.join(path, os.path.pardir)), exist_ok=True)
+
     with open(path, mode, encoding="utf8") as f:
         json.dump(node, f, ensure_ascii=False, indent=indent)
         f.write("\n")

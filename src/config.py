@@ -4,7 +4,7 @@
 
 # All constants below should not be changed
 
-DEBUG = True
+DEBUG = False
 
 # DEBUG 0
 # INFO 1

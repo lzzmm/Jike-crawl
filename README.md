@@ -4,9 +4,9 @@
 
 TODO:
 
-1. save collections and profile
+1. save collections and profile done
 2. rewrite some funtctions
-3. show local data in html
+3. show local data in html done
 4. update zh-cn README
 
 ## RUNNING VIA `src/main.ipynb` IS STRONGLY RECOMMENDED
@@ -15,7 +15,7 @@ TODO:
 
 [中文](#删号跑路中文)
 
-Crawl posts, notifications, and maybe collections(undone) on Jike and save them in `csv file`(undone) / `json file` / `MySQL`(undone) before you delete your Jike account. Pictures in posts can be downloaded, too.
+Crawl posts, notifications, and maybe collections(undone) on Jike and save them into `csv file`(undone) / `json file` / `MySQL`(undone) before you delete your Jike account. Pictures in posts can be downloaded, too.
 
 Delete posts in a specific time range or by default, all time.
 

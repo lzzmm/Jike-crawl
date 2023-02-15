@@ -1,9 +1,10 @@
-query UserFeeds($username: String!, $loadMoreKey: JSON) {
-  userProfile(username: $username) {
-    username
-    feeds(loadMoreKey: $loadMoreKey) {
+query UserCollections($loadMoreKey: JSON) {
+  viewer {
+    collections(loadMoreKey: $loadMoreKey) {
       ...BasicFeedItem
+      
     }
+    
   }
 }
 
@@ -11,15 +12,18 @@ fragment BasicFeedItem on FeedsConnection {
   pageInfo {
     loadMoreKey
     hasNextPage
+    
   }
   nodes {
     ... on ReadSplitBar {
       id
       type
       text
+      
     }
     ... on MessageEssential {
       ...FeedMessageFragment
+      
     }
     ... on UserAction {
       id
@@ -129,21 +133,35 @@ fragment FeedMessageFragment on MessageEssential {
     ...RootMessageFragment
     ...UserPostFragment
     ...MessageInfoFragment
+    isPrivate
+    pinned {
+      personalUpdate
+      
+    }
+    
   }
   ... on Repost {
     ...LikeableFragment
     ...CommentableFragment
     ...UserPostFragment
     ...RepostFragment
+    isPrivate
+    pinned {
+      personalUpdate
+      
+    }
+    
   }
   ... on Question {
     ...UserPostFragment
+    
   }
   ... on OfficialMessage {
     ...LikeableFragment
     ...CommentableFragment
     ...MessageInfoFragment
     ...RootMessageFragment
+    
   }
   
 }
@@ -155,63 +173,103 @@ fragment EssentialFragment on MessageEssential {
   shareCount
   repostCount
   createdAt
+  collected
   pictures {
-    picUrl
+    picUrl    
   }
   urlsInText {
     url
     originalUrl
     title
   }
+  
 }
 
 fragment LikeableFragment on LikeableMessage {
   liked
   likeCount
+  
 }
 
 fragment CommentableFragment on CommentableMessage {
   commentCount
+  
 }
 
 fragment RootMessageFragment on RootMessage {
   topic {
     id
     content
+    
   }
+  
 }
 
 fragment UserPostFragment on MessageUserPost {
   readTrackInfo
   user {
     ...TinyUserFragment
+    
   }
+  
 }
 
 fragment TinyUserFragment on UserInfo {
   avatarImage {
     thumbnailUrl
   }
+  isSponsor
   username
   screenName
   briefIntro
+  
 }
 
 fragment MessageInfoFragment on MessageInfo {
   video {
     title
+    type
+    image {
+      picUrl 
+    }
+    
   }
   linkInfo {
+    originalLinkUrl
     linkUrl
     title
+    pictureUrl
+    linkIcon
+    audio {
+      title
+      type
+      image {
+        thumbnailUrl
+        picUrl
+      }
+      author
+    }
+    video {
+      title
+      type
+      image {
+        picUrl
+        
+      }
+      
+    }
+    
   }
+  
 }
 
 fragment RepostFragment on Repost {
   target {
     ...RepostTargetFragment
+    
   }
   targetType
+  
 }
 
 fragment RepostTargetFragment on RepostTarget {
@@ -221,14 +279,18 @@ fragment RepostTargetFragment on RepostTarget {
     content
     pictures {
       thumbnailUrl
+      
     }
     topic {
       id
       content
+      
     }
     user {
       ...TinyUserFragment
+      
     }
+    
   }
   ... on Repost {
     id
@@ -236,10 +298,13 @@ fragment RepostTargetFragment on RepostTarget {
     content
     pictures {
       thumbnailUrl
+      
     }
     user {
       ...TinyUserFragment
+      
     }
+    
   }
   ... on Question {
     id
@@ -247,10 +312,13 @@ fragment RepostTargetFragment on RepostTarget {
     content
     pictures {
       thumbnailUrl
+      
     }
     user {
       ...TinyUserFragment
+      
     }
+    
   }
   ... on Answer {
     id
@@ -258,10 +326,13 @@ fragment RepostTargetFragment on RepostTarget {
     content
     pictures {
       thumbnailUrl
+      
     }
     user {
       ...TinyUserFragment
+      
     }
+    
   }
   ... on OfficialMessage {
     id
@@ -269,9 +340,13 @@ fragment RepostTargetFragment on RepostTarget {
     content
     pictures {
       thumbnailUrl
+      
     }
+    
   }
   ... on DeletedRepostTarget {
     status
+    
   }
+  
 }

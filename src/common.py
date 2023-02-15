@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, tzinfo
 DIR_PATH = os.path.dirname(os.path.dirname(__file__))
 
 API_GRAPHQL = "https://web-api.okjike.com/api/graphql"
+API_USER_PROFILE = "https://api.ruguoapp.com/1.0/users/profile"
 API_GET_FOLLOWER_LIST = "https://api.ruguoapp.com/1.0/userRelation/getFollowerList"
 API_GET_FOLLOWING_LIST = "https://api.ruguoapp.com/1.0/userRelation/getFollowingList"
 
@@ -26,10 +27,10 @@ COOKIES = {
     'cookie': open(os.path.join(DIR_PATH, 'config/cookies.txt')).read()
 }
 
+
 ############################
 #   GraphQL API Payloads   #
 ############################
-
 
 PAYLOAD_USER_FEEDS = {
     "operationName": "UserFeeds",
@@ -43,6 +44,12 @@ PAYLOAD_FETCH_SELF_FEEDS = {
     "operationName": "FetchSelfFeeds",
     "query": open(os.path.join(DIR_PATH, "query/query_fetch_self_feeds.txt")).read(),
     "variables": {}
+}
+
+PAYLOAD_USER_COLLECTIONS = {
+    "operationName": "UserCollections",
+    "variables": {},
+    "query": open(os.path.join(DIR_PATH, "query/query_user_collections.txt")).read()
 }
 
 PAYLOAD_REFRESH_COOKIES = {
@@ -100,6 +107,7 @@ PAYLOAD_HIDE = {
     },
     "query": "mutation HideMessage($id: ID!, $messageType: MessageType!) {\n  hideMessage(messageType: $messageType, id: $id)\n}\n"
 }
+
 
 ############################
 #   datetime & timezone    #

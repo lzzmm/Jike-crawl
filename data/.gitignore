@@ -3,4 +3,4 @@
 !.gitignore
 !pics
 !logs
-!pages/template.html
+!pages/templates/*

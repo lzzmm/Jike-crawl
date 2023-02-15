@@ -1,0 +1,30 @@
+<div id="post-{% post-idx %}" class="post">
+    <h2><code>#{% post-idx %} {% create-time %}</code><br />{% user-name %}</h2>
+    <div>
+        {% user-bio %}
+    </div>
+    <div>
+        {% post-topic-content %}
+    </div>
+    <div class="content">
+        {% post-content %}
+    </div><br />
+    <div>
+        {% post-pics %}
+    </div>
+    <div>
+        {% post-target %}
+    </div>
+    <div>
+        {% post-linkInfo %}
+    </div>
+    <div>
+        {% post-like %}
+    </div>
+    <div>
+        <code class="highlight">
+            {% post-link %}
+        </code>
+    </div>
+    <hr>
+</div>
