@@ -116,6 +116,15 @@ PAYLOAD_SEARCH_INTEGRATE = {
     "query": open(os.path.join(DIR_PATH, "query/query_search_integrate.graphql")).read()
 }
 
+PAYLOAD_MEDIA_META_PLAY = {
+    "operationName": "MediaMetaPlay",
+    "variables": {
+        "messageId": "",
+        "messageType": "ORIGINAL_POST"
+    },
+    "query": "query MediaMetaPlay($messageId: ID!, $messageType: MessageType!) {\n  mediaMetaPlay(messageId: $messageId, messageType: $messageType) {\n    mediaLink\n    url\n    __typename\n  }\n}\n"
+}
+
 PAYLOAD_HIDE = {
     # TODO: Does not work
     "operationName": "HideMessage",

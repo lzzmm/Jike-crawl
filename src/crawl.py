@@ -39,9 +39,12 @@ def proc_node(node, path, mode, start_time, end_time, end, record_count, b_save_
     # TODO: this should not be here and should be outside this function
     # time should not euqal to start_time which leads to re-add of first node
     if time > start_time and time <= end_time:
+        if "video" in node and node["video"] is not None:
+            node["video"]["url"] = get_media_url(node["id"], node["type"])
         save_json(node, path, mode)
         if b_save_pics and ("pictures" in node) and len(node["pictures"]) != 0:
             save_pics(node, pic_path)
+            
         record_count += 1
 
     if (record_count_limit != None and record_count >= record_count_limit) or (time <= start_time):
@@ -277,13 +280,13 @@ def crawl_comment(m_id: str, m_type: str, b_save_pics: bool = False, b_update_co
 
             if b_save_pics:
                 ...
-                # if "pictures" in node and len(node["pictures"]) != 0:
-                #     save_pics(node, pic_path)
-                # TODO: sub comment
+                if "pictures" in node and len(node["pictures"]) != 0:
+                    save_pics(node, pic_path)
 
-                # if node["hotReplies"] is not None and len(node["hotReplies"]) != 0:
-                #     for hot_reply in node["hotReplies"]:
-                #         save_pics(hot_reply, pic_path)
+                if node["hotReplies"] is not None and len(node["hotReplies"]) != 0:
+                    for hot_reply in node["hotReplies"]:
+                        if "pictures" in hot_reply and len(hot_reply["pictures"]) != 0:
+                            save_pics(hot_reply, pic_path)
 
         if loadMoreKey == None:
             break
@@ -503,7 +506,7 @@ if __name__ == "__main__":
     user_id = "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC"
     ##################################################
 
-    b_save_pics = True  # Bool
+    b_save_pics = False  # Bool
     b_save_coll_pics = False  # Bool
 
     # operate posts created during 2021/12/01 and 2021/12/31
@@ -531,6 +534,7 @@ if __name__ == "__main__":
 
     crawl_posts(user_id, post_path, "a", b_save_pics,
                 post_record_limit, post_start_time, post_end_time)
+    crawl_comments(post_path)
 
     # crawl_following(user_id)
     # crawl_follower(user_id)
@@ -539,8 +543,6 @@ if __name__ == "__main__":
     coll_record_limit = None
 
     # crawl_collections(coll_path, "a", b_save_coll_pics, coll_record_limit)
-    # crawl_profile(user_id)
-
-    crawl_comments(post_path, True, True, 10)
     # crawl_comments(coll_path)
 
+    # crawl_profile(user_id)

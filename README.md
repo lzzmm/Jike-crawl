@@ -4,17 +4,17 @@
 
 ![post_html](img/post_html.png)
 
-
 TODO:
 
 1. rewrite some funtctions
-2. update zh-cn README
-
-## RUNNING VIA `src/main.ipynb` IS STRONGLY RECOMMENDED
-
-## Jike-crawl (EN)
+2. update README
+3. kuakua
 
 [中文](#删号跑路中文)
+
+## 建议通过 `src/main.ipynb` 运行
+
+## Jike-crawl (EN)
 
 Crawl posts, notifications, and maybe collections on Jike and save them into `csv file`(undone) / `json file` / `MySQL`(undone) before you delete your Jike account. Pictures in posts can be downloaded, too.
 
@@ -37,6 +37,7 @@ Timezone is set to GMT+8.
 - Python 3
 - json
 - requests
+- tqdm
 
 Download and setup Python environment. Open this folder in Visual Studio Code.
 
@@ -143,8 +144,6 @@ run `like_posts.py`
 ## 删号跑路（中文）
 
 [EN](#jike-crawl-en)
-
-### 建议通过 `src/main.ipynb` 运行
 
 在注销即刻账号跑路之前保存自己的动态和消息。
 
@@ -924,5 +923,34 @@ payload
         "commentId": "5f129daee7b3a80018b1a40b"
     },
     "query": "query ListSubComments($targetType: MessageType!, $commentId: ID!) {\n  commentDetail(targetType: $targetType, id: $commentId) {\n    listSubComments {\n      ...InnerCommentFragment\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment InnerCommentFragment on Comment {\n  id\n  threadId\n  createdAt\n  content\n  level\n  user {\n    ...TinyUserFragment\n    __typename\n  }\n  urlsInText {\n    title\n    originalUrl\n    url\n    __typename\n  }\n  pictures {\n    format\n    picUrl\n    thumbnailUrl\n    width\n    height\n    __typename\n  }\n  replyToComment {\n    user {\n      ...TinyUserFragment\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment TinyUserFragment on UserInfo {\n  avatarImage {\n    thumbnailUrl\n    smallPicUrl\n    picUrl\n    __typename\n  }\n  isSponsor\n  username\n  screenName\n  briefIntro\n  __typename\n}\n"
+}
+```
+
+#### Media Meta Play
+
+payload
+
+```json
+{
+    "operationName": "MediaMetaPlay",
+    "variables": {
+        "messageId": "",
+        "messageType": ""
+    },
+    "query": "query MediaMetaPlay($messageId: ID!, $messageType: MessageType!) {\n  mediaMetaPlay(messageId: $messageId, messageType: $messageType) {\n    mediaLink\n    url\n    __typename\n  }\n}\n"
+}
+```
+
+response
+
+```json
+{
+    "data": {
+        "mediaMetaPlay": {
+            "mediaLink": "qiniu://videos/....mp4",
+            "url": "https://videocdn.jellow.site/....mp4?sign=5df178078c57518457d0ed86796165cc&t=63f13050",
+            "__typename": "MediaMetaPlayResponse"
+        }
+    }
 }
 ```

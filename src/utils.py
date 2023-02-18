@@ -327,6 +327,26 @@ def call_api_post(api: str, payload: dict = None) -> requests.Response:
         err("In call_api_post", e.args)
 
 
+def get_media_url(id: str, type: str) -> str:
+    payload = PAYLOAD_MEDIA_META_PLAY
+
+    payload["variables"]["messageId"] = id
+    payload["variables"]["messageType"] = type
+
+    try:
+        response = op_post(payload)
+        # info(response, response.json())
+        if "data" in response.json() and \
+            "mediaMetaPlay" in response.json()["data"] and \
+                "url" in response.json()["data"]["mediaMetaPlay"]:
+            return response.json()["data"]["mediaMetaPlay"]["url"]
+
+    except Exception as e:
+        err("In get_media_url", e.args)
+
+    return None
+
+
 def op_post(payload, url=API_GRAPHQL, headers=HEADERS, cookies=COOKIES) -> requests.Response:  # 这四个作为一个类
     """
     post with payload
@@ -494,7 +514,7 @@ def crit(*values: object, b_log=True) -> None:
 #####################################
 #   read file                       #
 #####################################
-def read_multi_json_file(path, lines=None, print_done:bool=True) -> list:
+def read_multi_json_file(path, lines=None, print_done: bool = True) -> list:
     """
     Read multi-object json file
     ---
@@ -563,7 +583,7 @@ def read_list_file(path, lines=None, print_done: bool = True) -> list:
                 done("Read", count, "line(s) from", path)
 
     except Exception as e:
-        err("Failed reading file",path, e.args)
+        err("Failed reading file", path, e.args)
 
     return x
 
@@ -709,3 +729,11 @@ def print_format(str, way, width, fill=' ', ed='') -> None:
             str, fill, way, width), end=ed, flush=True)
     except:
         err("Error occurs in print_format()")
+
+
+def test():
+    info(get_media_url("62de83108a9205a22922afdd", "ORIGINAL_POST"))
+
+
+if __name__ == "__main__":
+    test()

@@ -347,16 +347,18 @@ def post_page(json_data_path: str = post_data_path, html_path: str = post_html_u
             post_data["post-topic-content"] += "</code></h3>"
 
         if config_show_pic == True:
-            post_pic_path = os.path.join(pic_path, post["id"])
-            if os.path.isdir(post_pic_path):
-                for pic in post["pictures"]:
-                    pic = os.path.join(post_pic_path, pic["picUrl"].split("?")[
-                        0].split("/")[-1])
-                    if os.path.isfile(pic):
-                        post_data["post-pics"] += "<div class=\"cropped\"><a href=" + pic + \
-                            " target=\"_blank\" title=\"open picture\">"
-                        post_data["post-pics"] += "<img src=\"" + \
-                            pic + "\" alt=\"" + pic + "\" ></a></div>"
+            post_pics_path = os.path.join(pic_path, post["id"])
+            for pic in post["pictures"]:
+                post_pic_path = os.path.join(post_pics_path, pic["picUrl"].split("?")[
+                    0].split("/")[-1])
+                if os.path.isfile(post_pic_path):
+                    post_data["post-pics"] += "<div class=\"cropped\"><a href=" + post_pic_path + \
+                        " target=\"_blank\" title=\"open picture\">" +"<img src=\"" + \
+                        post_pic_path + "\" alt=\"" + post_pic_path + "\" ></a></div>"
+                else:
+                    post_data["post-pics"] += "<div class=\"cropped\"><a href=" + pic["picUrl"] + \
+                        " target=\"_blank\" title=\"open picture\">" + "<img src=\"" + \
+                        pic["picUrl"] + "\" alt=\"" + pic["picUrl"] + "\" ></a></div>"
 
         post_content_old: str = post["content"].replace("\n", "<br/>")
         if "urlsInText" in post:
@@ -397,10 +399,17 @@ def post_page(json_data_path: str = post_data_path, html_path: str = post_html_u
             post_data["post-target"] += "</div></blockquote>"
 
         if "linkInfo" in post and post["linkInfo"] is not None:
-            # post_data["post-linkInfo"] += "<div>"
+            audio = ""
+            if "audio" in post["linkInfo"] and post["linkInfo"]["audio"] is not None:
+                audio = "🎵"
             post_data["post-linkInfo"] += "<a href=\"" + post["linkInfo"]["linkUrl"] + \
-                "\" target=\"_blank\" title=\"open link\">🔗" + \
+                "\" target=\"_blank\" title=\"open link\">🔗"+ audio + \
                 post["linkInfo"]["title"] + "</a><br/>"
+                
+        if "video" in post and post["video"] is not None:
+            post_data["post-linkInfo"] += "<a href=\"" + post["video"]["url"] + \
+                "\" target=\"_blank\" title=\"open link\">🔗🎬" + \
+                post["video"]["type"] + "</a><br/>"
 
         comm_len = 0
         comm_data_path = os.path.join(comm_dir_path, post_id + ".json")
@@ -417,12 +426,19 @@ def post_page(json_data_path: str = post_data_path, html_path: str = post_html_u
                 for hrp_idx, hrp in enumerate(comment["hotReplies"]):
 
                     pics_link = ""
+                    hrp_pics_path = os.path.join(DIR_PATH, "data/pics/comments", hrp["id"])
                     for pic in hrp["pictures"]:
-                        # TODO: if downloaded
-                        comm_pic_path = os.path.join(pic_path, post["id"])
-                        pics_link += "<br /><a href=\"" + \
-                            pic["picUrl"] + "\" target=\"_blank\">🖼️ " + \
-                            pic["format"] + "</a>"
+                        pic_url = pic["picUrl"]
+                        hrp_pic_path = os.path.join(
+                            hrp_pics_path, pic_url.split("?")[0].split("/")[-1])
+                        if os.path.isfile(hrp_pic_path):
+                            pics_link += "<br /><a href=\"" + \
+                                hrp_pic_path + "\" target=\"_blank\">local: 🖼️ " + \
+                                pic["format"] + "</a>"
+                        else:
+                            pics_link += "<br /><a href=\"" + \
+                                pic_url + "\" target=\"_blank\">🔗 🖼️ " + \
+                                pic["format"] + "</a>"
 
                     hrp_content: str = hrp["content"].replace("\n", "<br/>")
                     if "urlsInText" in hrp and hrp["urlsInText"] is not None:
@@ -434,10 +450,19 @@ def post_page(json_data_path: str = post_data_path, html_path: str = post_html_u
                         hrp["createdAt"], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8()).__format__("%Y-%m-%d %X %Z"), "content": hrp_content + pics_link, "to-user-name": hrp["replyToComment"]["user"]["screenName"], "level": hrp["level"]})
 
                 pics_link = ""
+                comm_pics_path = os.path.join(DIR_PATH, "data/pics/comments", comment["id"])
                 for pic in comment["pictures"]:
-                    pics_link += "<br /><a href=\"" + \
-                        pic["picUrl"] + "\" target=\"_blank\">🖼️ " + \
-                        pic["format"] + "</a>"
+                    pic_url = pic["picUrl"]
+                    comm_pic_path = os.path.join(
+                        comm_pics_path, pic_url.split("?")[0].split("/")[-1])
+                    if os.path.isfile(comm_pic_path):
+                        pics_link += "<br /><a href=\"" + \
+                            comm_pic_path + "\" target=\"_blank\">local: 🖼️ " + \
+                            pic["format"] + "</a>"
+                    else:
+                        pics_link += "<br /><a href=\"" + \
+                            pic_url + "\" target=\"_blank\">🔗 🖼️ " + \
+                            pic["format"] + "</a>"
 
                 comment_content: str = comment["content"].replace(
                     "\n", "<br/>")

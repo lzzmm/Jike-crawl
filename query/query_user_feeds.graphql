@@ -200,10 +200,33 @@ fragment TinyUserFragment on UserInfo {
 fragment MessageInfoFragment on MessageInfo {
   video {
     title
+    type
+    image {
+      picUrl
+    }
   }
   linkInfo {
+    originalLinkUrl
     linkUrl
     title
+    pictureUrl
+    linkIcon
+    audio {
+      title
+      type
+      image {
+        thumbnailUrl
+        picUrl
+      }
+      author
+    }
+    video {
+      title
+      type
+      image {
+        picUrl
+      }
+    }
   }
 }
 
