@@ -31,6 +31,8 @@ def summarize_notifications(path):
         avatar_greet_count_all,
         followed_count_all
     ) = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    
+    # TODO: repeated id
 
     for node in x:
         user_num = node['actionItem']['usersCount']

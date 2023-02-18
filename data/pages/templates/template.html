@@ -6,121 +6,10 @@
 
 <head>
     <meta content="text/html; charset=utf-8" />
+    <title>{% title %}</title>
+    <!-- NOTE: link to css file base on posts.html but not on this page-->
+    <link rel="stylesheet" type="text/css" href="style.css">
     <style>
-        @font-face {
-            font-family: CamingoCodeRegular;
-            src: url("fonts/CamingoCode-Regular-1.woff");
-        }
-
-        .main {
-            width: 660px;
-            margin: auto;
-            padding: 20px;
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-        }
-
-        .post {
-            /* width: 500px; */
-            margin: 5px;
-        }
-
-        .user-bio {
-            font-size: 14px;
-            color: #334455;
-            /* background-color: #f3fffd; */
-            background-image: linear-gradient(120deg, #eefffd, #ffffff);
-            width: 320px;
-            padding: 5px;
-        }
-
-        .content {
-            line-height: 23px;
-            color: #233333;
-        }
-
-        .cropped {
-            display: inline-block;
-            width: 180px;
-            height: 170px;
-            overflow: hidden;
-            margin: 10px;
-        }
-
-        .cropped img {
-            /* width: 150px; */
-            height: 160px;
-            /* object-fit: cover; */
-            /* object-position: 20% 10%;  */
-            /* margin: 0px 0px 0px 20px; */
-        }
-
-        blockquote {
-            color: #023333;
-            /* background-color: #f3fffd; */
-            background-image: linear-gradient(120deg, #eefaff, #f3fffd);
-            /* border-left-color:  #00ffee; */
-        }
-
-        blockquote>div {
-            padding: 5px;
-            margin-left: 15px;
-            margin-right: 15px;
-        }
-
-        code {
-            font-family: CamingoCodeRegular, Consolas, "Fira Code", Menlo, Monaco, "Courier New", monospace;
-            padding: 2px 4px;
-            font-size: 90%;
-        }
-
-        code.highlight {
-            color: #03aaee;
-            background-color: #f9f2f4;
-            border-radius: 4px;
-        }
-
-        code.topic {
-            font-family: auto;
-            font-weight: normal;
-            color: #03aaee;
-            background-color: #f9f2f4;
-            border-radius: 4px;
-        }
-
-        h2>code {
-            color: #111111;
-            background-color: transparent;
-        }
-
-        a {
-            background-color: #f0fdfe;
-            color: #10aadd;
-            padding-left: 2px;
-            padding-right: 2px;
-            padding-top: 1px;
-            padding-bottom: 1px;
-        }
-
-        .cropped>a {
-            background-color: transparent !important;
-        }
-
-        .like>code.highlight {
-            margin-left: 5px;
-            margin-right: 5px;
-        }
-
-        .copyright>a {
-            text-decoration: none;
-        }
-
-        .footer {
-            padding-bottom: 10px;
-        }
     </style>
 </head>
 
@@ -129,7 +18,7 @@
         <h1>JIKE Archive</h1>
     </div>
     <div>
-        Generated at <code>{% curr-time %}{% title %}</code><br />
+        Generated at <code>{% curr-time %}{% data-source %}</code><br />
         <hr>
         {% post %}
     </div>
@@ -138,10 +27,8 @@
     <div class="footer">
         <div>
             <code class="highlight">{% post-count %}</code>
-            <code> post(s) read<br/>from </code><code
-                class="highlight"><a href="{% post-data-url %}">{% post-data-url %}</a></code>
-                <!-- TODO: copyright, profile / user in post -->
-                {% copyright %}
+            <code> post(s) read<br />from</code> <code><a href="{% post-data-url %}">{% post-data-url %}</a></code>
+            {% copyright %}
         </div>
         <br />
         <hr />
@@ -152,4 +39,18 @@
             即刻 <a href="https://web.okjike.com/u/D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC" target="_blank">@慵懒致命之炸毛</a>
         </h2>
     </div>
+    <script>
+        function show_hide(self) {
+            box = document.getElementById("comments-container-" + self.id.split("-")[2]);
+            // console.log("show_hide-" + self.id);
+            if (box.className == "show") {
+                box.className = "hide";
+                // self.value = "show";
+            }
+            else {
+                box.className = "show";
+                // self.value = "hide";
+            }
+        };
+    </script>
 </footer>

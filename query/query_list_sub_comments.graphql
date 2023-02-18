@@ -1,0 +1,52 @@
+query ListSubComments($targetType: MessageType!, $commentId: ID!) {
+  commentDetail(targetType: $targetType, id: $commentId) {
+    listSubComments {
+      ...InnerCommentFragment
+      
+    }
+    
+  }
+}
+
+fragment InnerCommentFragment on Comment {
+  id
+  threadId
+  createdAt
+  content
+  level
+  user {
+    ...TinyUserFragment
+    
+  }
+  urlsInText {
+    title
+    originalUrl
+    url
+    
+  }
+  pictures {
+    format
+    picUrl
+    width
+    height
+    
+  }
+  replyToComment {
+    user {
+      ...TinyUserFragment
+      
+    }
+    
+  }
+  
+}
+
+fragment TinyUserFragment on UserInfo {
+  avatarImage {
+    thumbnailUrl
+  }
+  username
+  screenName
+  briefIntro
+  
+}

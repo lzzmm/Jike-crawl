@@ -1,0 +1,103 @@
+query MessageComments($messageType: MessageType!, $messageId: ID!, $loadMoreCommentKey: JSON) {
+  message(messageType: $messageType, id: $messageId) {
+    id
+    ... on OriginalPost {
+      comments(loadMoreKey: $loadMoreCommentKey) {
+        ...CommentConnectionFragment
+      }
+    }
+    ... on Repost {
+      comments(loadMoreKey: $loadMoreCommentKey) {
+        ...CommentConnectionFragment
+        
+      }
+    }
+  }
+}
+
+fragment CommentConnectionFragment on CommentConnection {
+  pageInfo {
+    loadMoreKey
+    hasNextPage
+  }
+  nodes {
+    ...CommentFragment
+  }
+}
+
+fragment CommentFragment on Comment {
+  id
+  threadId
+  collapsed
+  collapsible
+  targetId
+  targetType
+  createdAt
+  level
+  content
+  user {
+    ...TinyUserFragment
+    
+  }
+  urlsInText {
+    title
+    originalUrl
+    url
+    
+  }
+  pictures {
+    format
+    picUrl
+    width
+    height
+    
+  }
+  likeCount
+  liked
+  replyCount
+  enablePictureComments
+  hotReplies {
+    ...InnerCommentFragment
+    
+  }
+  
+}
+
+fragment TinyUserFragment on UserInfo {
+  avatarImage {
+    thumbnailUrl
+  }
+  username
+  screenName
+  briefIntro
+}
+
+fragment InnerCommentFragment on Comment {
+  id
+  threadId
+  createdAt
+  content
+  level
+  user {
+    ...TinyUserFragment
+    
+  }
+  urlsInText {
+    title
+    originalUrl
+    url
+  }
+  pictures {
+    format
+    picUrl
+    width
+    height
+  }
+  replyToComment {
+    user {
+      ...TinyUserFragment
+    }
+    
+  }
+  
+}

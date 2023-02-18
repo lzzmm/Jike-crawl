@@ -11,17 +11,19 @@ from datetime import datetime, timedelta, tzinfo
 from config import *
 from common import *
 
+
 def reload_cookies() -> dict:
-    
+
     global COOKIES
-    
+
     COOKIES = {
         'cookie': open(os.path.join(DIR_PATH, 'config/cookies.txt')).read()
     }
-    
+
     done("Cookies reloaded.")
-    
+
     return COOKIES
+
 
 def refresh_cookies() -> dict:
 
@@ -51,7 +53,7 @@ def refresh_cookies() -> dict:
     with open(os.path.join(DIR_PATH, 'config/cookies.txt'), 'w', encoding="utf8") as f:
         f.write(COOKIES['cookie'])
         done("Token updated.")
-        
+
     return COOKIES
 
 
@@ -492,7 +494,7 @@ def crit(*values: object, b_log=True) -> None:
 #####################################
 #   read file                       #
 #####################################
-def read_multi_json_file(path, lines=None) -> list:
+def read_multi_json_file(path, lines=None, print_done:bool=True) -> list:
     """
     Read multi-object json file
     ---
@@ -519,15 +521,16 @@ def read_multi_json_file(path, lines=None) -> list:
                 count += 1
                 line = f.readline()
 
-            done("Read", count, "line(s) from", path)
+            if print_done == True:
+                done("Read", count, "line(s) from", path)
 
     except Exception as e:
-        err("Failed reading file.", e.args)
+        err("Failed reading file", path,  e.args)
 
     return x
 
 
-def read_list_file(path, lines=None) -> list:
+def read_list_file(path, lines=None, print_done: bool = True) -> list:
     """
     Read list file
     ---
@@ -555,10 +558,12 @@ def read_list_file(path, lines=None) -> list:
                 count += 1
                 line = f.readline()
 
-            done("Read", count, "line(s) from", path)
+            # TODO: verbose
+            if print_done == True:
+                done("Read", count, "line(s) from", path)
 
     except Exception as e:
-        err("Failed reading file.", e.args)
+        err("Failed reading file",path, e.args)
 
     return x
 
@@ -570,7 +575,7 @@ def read_file(path) -> str:
 #####################################
 #  write file                       #
 #####################################
-def log(*values: object, path: str = "data/logs/log.txt") -> None:
+def log(*values: object, path: str = "data/logs/jike-crawl.log") -> None:
 
     CURR_TIME = datetime.now(GMT8())
 
@@ -583,7 +588,7 @@ def log(*values: object, path: str = "data/logs/log.txt") -> None:
         err(e.args)
 
 
-def clear_log(path: str = "data/logs/log.txt"):
+def clear_log(path: str = "data/logs/jike-crawl.log"):
     try:
         path = os.path.join(DIR_PATH, path)
         os.remove(path) if os.path.isfile(path) else ...
@@ -591,7 +596,7 @@ def clear_log(path: str = "data/logs/log.txt"):
     except Exception as e:
         err(e.args)
 
-    done("data/logs/log.txt has been cleared.")
+    done(path, "has been cleared.")
 
 
 def save_list(list: list, path: str, mode="w") -> None:
@@ -621,10 +626,15 @@ def save_pics(node, path: str = "data/pics/") -> None:
 
     for pic in node["pictures"]:
         picUrl = pic["picUrl"]
+        pic_file_path = os.path.join(
+            pic_path, picUrl.split("?")[0].split("/")[-1])
+
+        if os.path.isfile(pic_file_path):
+            continue
+
         response = requests.get(picUrl)
-        # count += 1
-        # with open (os.path.join(pic_path, str(count)), 'wb') as f:
-        with open(os.path.join(pic_path, picUrl.split("?")[0].split("/")[-1]), 'wb') as f:
+
+        with open(pic_file_path, 'wb') as f:
             f.write(response.content)
 
     done("Pictures saved at", pic_path)
@@ -641,7 +651,8 @@ def save_json(node, path, mode, indent=None) -> None:
     - indent: int, default: None
     """
     if not os.path.isfile(path):
-        os.makedirs(os.path.abspath(os.path.join(path, os.path.pardir)), exist_ok=True)
+        os.makedirs(os.path.abspath(os.path.join(
+            path, os.path.pardir)), exist_ok=True)
 
     with open(path, mode, encoding="utf8") as f:
         json.dump(node, f, ensure_ascii=False, indent=indent)

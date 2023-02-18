@@ -1,6 +1,7 @@
 # -*- coding:utf8 -*-
 # create at: 2023-01-15T09:33:25Z+08:00
 # author:    lzzmm<2313681700@qq.com>
+# comment:   This file is a mount of shit and need to be rewritten
 
 import os
 import sys
@@ -187,7 +188,8 @@ def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=N
                     node['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(UTC()) < datetime.strptime(
                     first_node['createdAt'], "%Y-%m-%dT%X.%fZ").astimezone(UTC()):
                 end, record_count = proc_node(first_node,
-                                              path, mode, start_time, end_time, end, record_count, b_save_pics, record_count_limit)
+                                              path, mode, start_time, end_time, end, record_count, b_save_pics, record_count_limit,
+                                              "data/pics/posts/")
                 first_node_inserted = True
                 if end == True:
                     break
@@ -195,7 +197,8 @@ def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=N
             # TODO: rewrite proc_node and make those function call more clean and effective
             #       justice if need to process this node then call "proc_node"
             end, record_count = proc_node(node,
-                                          path, mode, start_time, end_time, end, record_count, b_save_pics, record_count_limit)
+                                          path, mode, start_time, end_time, end, record_count, b_save_pics, record_count_limit,
+                                          "data/pics/posts/")
             if end == True:
                 break
 
@@ -215,7 +218,106 @@ def crawl_posts(user_id, path, mode="a", b_save_pics=False, record_count_limit=N
     done(record_count, "record(s) saved.")
 
 
-def crawl_collections(path, mode="a", b_save_pics=False, record_count_limit=None, update=True) -> None:
+def crawl_comment(m_id: str, m_type: str, b_save_pics: bool = False, b_update_comments: bool = False, path: str = None, pic_path: str = "data/pics/comments") -> None:
+
+    info("%s: %s" % (m_type, m_id))
+
+    if path is None:
+        path = os.path.join(DIR_PATH, "data/comments/")
+        os.makedirs(path) if not os.path.isdir(path) else ...
+        path = os.path.join(path, m_id + ".json")
+        if os.path.isfile(path):
+            info("comment file already exists.")
+            if b_update_comments == True:
+                os.remove(path)
+            else:
+                return
+    else:
+        # path=os.join(DIR_PATH, path)
+        ...
+
+    payload = PAYLOAD_MESSAGE_COMMENTS
+    payload["variables"] = {
+        "messageId": m_id,
+        "messageType": m_type
+    }
+
+    payload_sub_comments = PAYLOAD_SUB_COMMENTS
+
+    # b_has_comments = False
+    request_count = 0
+    # record_count = 0
+
+    while True:
+
+        response = crawl(API_GRAPHQL, COOKIES, HEADERS, payload)
+        request_count += 1
+
+        loadMoreKey = response.json(
+        )["data"]["message"]["comments"]["pageInfo"]["loadMoreKey"]
+        # important, loadMoreCommentKey not loadMoreKey
+        payload["variables"]["loadMoreCommentKey"] = loadMoreKey
+        info("sending request", request_count, loadMoreKey)
+
+        for node in response.json()["data"]["message"]["comments"]["nodes"]:
+
+            if node["replyCount"] > len(node["hotReplies"]):
+                payload_sub_comments["variables"]["targetType"] = node["targetType"]
+                payload_sub_comments["variables"]["commentId"] = node["id"]
+
+                response_sub_comments = crawl(
+                    API_GRAPHQL, COOKIES, HEADERS, payload_sub_comments)
+
+                node["hotReplies"] = response_sub_comments.json()["data"]["commentDetail"]["listSubComments"]
+                # info(node["hotReplies"])
+
+            save_json(node, path, "a")
+
+            # record_count += 1
+
+            if b_save_pics:
+                ...
+                # if "pictures" in node and len(node["pictures"]) != 0:
+                #     save_pics(node, pic_path)
+                # TODO: sub comment
+
+                # if node["hotReplies"] is not None and len(node["hotReplies"]) != 0:
+                #     for hot_reply in node["hotReplies"]:
+                #         save_pics(hot_reply, pic_path)
+
+        if loadMoreKey == None:
+            break
+
+    # if b_has_comments == True:
+    #     done("%s: %s" % (m_type, m_id), "comment(s) saved.")
+    # else:
+    #     done("%s: %s" % (m_type, m_id), "no comment to be saved.")
+
+
+def crawl_comments(posts_path: str, b_save_pics: bool = False, b_update_comments: bool = False, record_count_limit: int = None, path: str = None) -> None:
+    """
+    Read from posts.json and get id and type, then crawl comments base on them
+    ---
+
+    """
+    info("Running crawl_comments.")
+
+    record_count = 0
+    m_list = [[node["id"], node["type"]]
+              for node in read_multi_json_file(posts_path, record_count_limit) if node["commentCount"] > 0]
+
+    list_len = len(m_list)
+    for idx, msg in enumerate(m_list):
+        
+        crawl_comment(msg[0], msg[1], b_save_pics, b_update_comments)
+        record_count += 1
+        done("%d/%d %s: %s" %
+             (idx + 1, list_len, msg[1], msg[0]), "comment(s) saved.")
+
+    done(record_count, "post(s) operated.")
+
+
+def crawl_collections(path, mode="a", b_save_pics=False, record_count_limit: int = None, update=True) -> None:
     """
     loop and crawl all collections and save into database/file
     TODO: function too long! rewrite it!
@@ -352,12 +454,12 @@ def crawl_relation(user_id: str, path: str, api: str) -> None:
 
 
 def crawl_profile(user_id: str) -> None:
-    
+
     info("Running crawl_profile.")
 
     api = API_USER_PROFILE + "?username=" + user_id
     payload = {"username": user_id}
-    
+
     response = call_api_get(api, payload)
 
     info(response)
@@ -401,7 +503,7 @@ if __name__ == "__main__":
     user_id = "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC"
     ##################################################
 
-    b_save_pics = False  # Bool
+    b_save_pics = True  # Bool
     b_save_coll_pics = False  # Bool
 
     # operate posts created during 2021/12/01 and 2021/12/31
@@ -436,5 +538,9 @@ if __name__ == "__main__":
 
     coll_record_limit = None
 
-    crawl_collections(coll_path, "a", b_save_coll_pics, coll_record_limit)
-    crawl_profile(user_id)
+    # crawl_collections(coll_path, "a", b_save_coll_pics, coll_record_limit)
+    # crawl_profile(user_id)
+
+    crawl_comments(post_path, True, True, 10)
+    # crawl_comments(coll_path)
+

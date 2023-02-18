@@ -1,0 +1,40 @@
+<!-- 
+    create at: 2023-02-16T14:33:09Z+08:00
+    author:    lzzmm<2313681700@qq.com>
+-->
+{% if container-start %}
+<div id="comments-container-{% post-idx %}" class="hide">
+    {% endif %}
+
+    {% if user-name %}
+    <div class="single-comment-container" style="padding: 10px;">
+        <div class="comments-user-name">{% user-name %}{% if to-user-name %} → {% to-user-name %}{% endif %}</div>
+        <div class="comments-create-at"><code>{% create-time %}</code>{% if level %}<code
+                class="highlight">#{% level %}</code>{% endif %}</div>
+        <div class="comments-content">{% content %}</div>
+
+        {% if hot-replies %}
+        <blockquote class="hot-replies-blockquote">
+            <div class="hot-replies">
+                {% hot-replies %}
+            </div>
+        </blockquote>
+        {% endif %}
+    </div>
+
+    {% elif num-comment == 0 %}
+    <div class="comments-content" style="padding: 5px"><code class="highlight">No comment.</code></div>
+    {% endif %}
+    {% if container-end %}
+    <!-- TODO: hide -->
+    {% if num-comment > 0 %}
+    <div class="like">
+        <div class="close-comment-button">
+            <button id="show-comments-{% post-idx %}" class="highlight" onclick="show_hide(this)" style="cursor: hand;">
+                Close
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}

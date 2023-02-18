@@ -300,7 +300,7 @@ payload
 ```json
 {
     "operationName": "ListNotification",
-    "query": "query/query_notifications_original.txt",
+    "query": "query/query_notifications_original.graphql",
     "variables": {}
 }
 ```
@@ -383,7 +383,7 @@ payload
 ```json
 {
     "operationName": "UserFeeds",
-    "query": "query/query_user_feeds_original.txt",
+    "query": "query/query_user_feeds_original.graphql",
     "variables": {
         "username": "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC",
         "loadMoreKey": {
@@ -426,7 +426,7 @@ payload
 ```json
 {
     "operationName": "MessageDetail"
-    "query": "query/query_message_detail_original.txt",
+    "query": "query/query_message_detail_original.graphql",
     "variables": {
         "messageType": "ORIGINAL_POST",
         "messageId": "63a3b8b160f43c294d672622"
@@ -441,7 +441,7 @@ payload
 ```json
 {
     "operationName": "MessageComments",
-    "query": "query/query_message_comments_original.txt",
+    "query": "query/query_message_comments_original.graphql",
     "variables": {
         "messageId": "6389d93582742179e6a9335c",
         "messageType": "ORIGINAL_POST"
@@ -538,7 +538,7 @@ payload
 {
     "operationName": "MissedFeeds",
     "variables": {},
-    "query": "query/query_miss_feeds_original.txt"
+    "query": "query/query_miss_feeds_original.graphql"
 }
 ```
 
@@ -624,7 +624,7 @@ payload
 {
     "operationName": "FetchSelfFeeds",
     "variables": {},
-    "query": "query/query_fetch_self_feeds_original.txt"
+    "query": "query/query_fetch_self_feeds_original.graphql"
 }
 ```
 
@@ -636,7 +636,7 @@ payload
 {
     "operationName": "UserCollections",
     "variables": {},
-    "query": "query/query_user_collections_original.txt"
+    "query": "query/query_user_collections_original.graphql"
 }
 ```
 
@@ -908,6 +908,21 @@ error
     "variables": {
         "keywords": "炸毛"
     },
-    "query": "query/query_search_integrate_original.txt"
+    "query": "query/query_search_integrate_original.graphql"
+}
+```
+
+#### List Sub Comments
+
+payload
+
+```json
+{
+    "operationName": "ListSubComments",
+    "variables": {
+        "targetType": "ORIGINAL_POST",
+        "commentId": "5f129daee7b3a80018b1a40b"
+    },
+    "query": "query ListSubComments($targetType: MessageType!, $commentId: ID!) {\n  commentDetail(targetType: $targetType, id: $commentId) {\n    listSubComments {\n      ...InnerCommentFragment\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment InnerCommentFragment on Comment {\n  id\n  threadId\n  createdAt\n  content\n  level\n  user {\n    ...TinyUserFragment\n    __typename\n  }\n  urlsInText {\n    title\n    originalUrl\n    url\n    __typename\n  }\n  pictures {\n    format\n    picUrl\n    thumbnailUrl\n    width\n    height\n    __typename\n  }\n  replyToComment {\n    user {\n      ...TinyUserFragment\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment TinyUserFragment on UserInfo {\n  avatarImage {\n    thumbnailUrl\n    smallPicUrl\n    picUrl\n    __typename\n  }\n  isSponsor\n  username\n  screenName\n  briefIntro\n  __typename\n}\n"
 }
 ```

@@ -1,6 +1,7 @@
 # -*- coding:utf8 -*-
 # create at: 2023-02-13T21:28:47Z+08:00
 # author:    lzzmm<2313681700@qq.com>
+# comment:   This file contains functions for creating HTML pages from json data
 
 import os
 import re
@@ -8,7 +9,7 @@ import sys
 import json
 import requests
 import webbrowser
-# from tqdm import tqdm
+from tqdm import tqdm
 
 
 from config import *
@@ -20,18 +21,22 @@ from utils import *
 # DONE: function to call
 
 config_show_pic = True
+END_INDEX = None
 
 post_data_path = os.path.join(DIR_PATH, "data/posts.json").replace("\\", "/")
 coll_data_path = os.path.join(DIR_PATH, "data/collections.json")
+comm_dir_path = os.path.join(DIR_PATH, "data/comments/")
 
 
-post_pic = os.path.join(DIR_PATH, "data/pics/")
+post_pic = os.path.join(DIR_PATH, "data/pics/posts/")
 coll_pic = os.path.join(DIR_PATH, "data/pics/collections/")
 
 template_post_url = os.path.join(
     DIR_PATH, "data/pages/templates/post.html").replace("\\", "/")
 template_like_url = os.path.join(
     DIR_PATH, "data/pages/templates/like.html").replace("\\", "/")
+template_comment_url = os.path.join(
+    DIR_PATH, "data/pages/templates/comment.html").replace("\\", "/")
 template_url = os.path.join(
     DIR_PATH, "data/pages/templates/template.html").replace("\\", "/")
 
@@ -54,40 +59,206 @@ def template_insert(template_str: str, template_path: str, data: dict) -> str:
         with open(template_path, "r", encoding="utf8") as f:
             content = f.read()
 
-    # DONE: rewrite, split base on {%%} and find data by key
-    # for key in data:
-    #     contents = content.split("{%" + key + "%}")
-
-    #     if len(contents) < 2:
-    #         warn("Key", "\"" + key + "\"", "is not used in template.")
-    #         continue
-
-    #     for idx, part in enumerate(contents):
-    #         if idx == 0:
-    #             content = part
-    #         else:
-    #             content += data[key] + part
-
     contents = re.split("{%|%}", content)
 
     content = ""
+    pass_else_stack = [False]
+    branch_ctrl_stack = [True]
+    branch_depth = 0
     for idx, part in enumerate(contents):
         # even
-        if not idx & 1:
-            content += part
+        if idx & 1 == 0:
+            if branch_ctrl_stack[branch_depth] == True:
+                content += part
 
         # odd
         else:
+            # debug(part)
             part = part.strip()  # remove spaces prefix / suffix
-            # debug(idx, part)
-            if part in data:
-                content += data[part]
+            parts = part.split(' ')
+            # debug("part:", part)
+
+            b_num_cmp = True
+            # DONE: support nesting
+            if len(parts) >= 2:
+
+                key_idx = 1
+                b_key = True
+
+                if parts[key_idx] == "not":
+                    key_idx += 1
+                    b_key = False
+
+                # num
+                if type(parts[key_idx]) == type(0):
+                    ...
+
+                # bool
+                if type(parts[key_idx]) == type(True):
+                    ...
+
+                # TODO:
+                # bool
+                elif parts[key_idx] in data and type(data[parts[key_idx]]) == type(True):
+                    b_num_cmp = data[parts[key_idx]]
+
+                # if not a == b, key_idx: 2, len: 5
+                if len(parts) == key_idx + 3:
+                    symbol_list_1 = ["\"", "\'", "("]
+                    symbol_list_2 = ["[", "{", "("]
+
+                    # string
+                    if parts[key_idx+2][0] in symbol_list_1:
+                        parts[key_idx+2] = parts[key_idx+2][1:-1]
+
+                    # template var
+                    elif parts[key_idx+2][0] in symbol_list_2:
+                        parts[key_idx+2] = data[parts[key_idx+2][1:-1]]
+
+                    # numeric (int only)
+                    elif parts[key_idx+2].isnumeric() == True:
+                        if parts[key_idx] in data and type(data[parts[key_idx]]) == type(0):
+                            parts[key_idx+2] = int(parts[key_idx+2])
+
+                            if parts[key_idx+1] == "==":
+                                if data[parts[key_idx]] != parts[key_idx+2]:
+                                    # b_key = not b_key
+                                    b_num_cmp = False
+                                # info(data[parts[key_idx]], b_num_cmp)
+
+                            elif parts[key_idx+1] == ">":
+                                # info(data[parts[key_idx]])
+                                if data[parts[key_idx]] <= parts[key_idx+2]:
+                                    # b_key = not b_key
+                                    b_num_cmp = False
+
+                                # info(b_num_cmp)
+
+                            elif parts[key_idx+1] == ">=":
+                                if data[parts[key_idx]] < parts[key_idx+2]:
+                                    # b_key = not b_key
+                                    b_num_cmp = False
+
+                            elif parts[key_idx+1] == "<":
+                                if data[parts[key_idx]] >= parts[key_idx+2]:
+                                    b_num_cmp = False
+                                    # b_key = not b_key
+
+                            elif parts[key_idx+1] == "<=":
+                                if data[parts[key_idx]] > parts[key_idx+2]:
+                                    b_num_cmp = False
+                                    # b_key = not b_key
+
+                        else:
+                            b_key = not b_key
+
+                    else:
+                        b_key = not b_key
+
+                if parts[0] == "if":
+                    # info("if start", branch_ctrl_stack)
+                    
+                    if branch_ctrl_stack[branch_depth] == True:
+                        if parts[key_idx] not in data or b_num_cmp == False:  # FIXME: bug == 0
+                            # info("b_key", b_key)
+                            branch_ctrl_stack.append(not b_key)
+                        else:
+                            # info("b_key", b_key)
+                            branch_ctrl_stack.append(b_key)
+
+                    else:
+                        branch_ctrl_stack.append(False)
+
+                    branch_depth += 1
+
+                    pass_else_stack.append(branch_ctrl_stack[branch_depth])
+
+                    # info(parts, branch_ctrl_stack)
+                    # info(pass_else_stack, parts, branch_depth, branch_ctrl_stack)
+
+                elif parts[0] == "elif":
+                    if branch_ctrl_stack[branch_depth - 1] == True:
+                        if pass_else_stack[branch_depth] == True:
+                            # info("elif pass")
+                            branch_ctrl_stack[branch_depth] = False
+                        else:
+                            if parts[key_idx] not in data or b_num_cmp == False:
+                                # info("elif ", not b_key)
+                                branch_ctrl_stack[branch_depth] = not b_key
+                            else:
+                                # info("elif ", b_key)
+                                branch_ctrl_stack[branch_depth] = b_key
+
+                            if branch_ctrl_stack[branch_depth] == True:
+                                pass_else_stack[branch_depth] = True
+                    else:
+                        branch_ctrl_stack[branch_depth] = False
+                        pass_else_stack[branch_depth] = True
+                    # info(parts, b_key, branch_ctrl_stack)
+                    # info(pass_else_stack, parts, branch_depth, branch_ctrl_stack)
+                    ...
             else:
-                # content += part
-                debug("Invalid variable", part)
-                pass
+                if part == "endif":
+
+                    del branch_ctrl_stack[branch_depth]
+                    del pass_else_stack[branch_depth]
+                    branch_depth -= 1
+
+                    # debug("endif", branch_depth, branch_ctrl_stack)
+
+                elif part == "else":
+                    if branch_ctrl_stack[branch_depth - 1] == True:
+                        if pass_else_stack[branch_depth] == True:
+                            branch_ctrl_stack[branch_depth] = False
+                        else:
+                            branch_ctrl_stack[branch_depth] = True
+                    else:
+                        branch_ctrl_stack[branch_depth] = False
+                        pass_else_stack[branch_depth] = True
+
+                    # debug("else", branch_ctrl_stack)
+
+                elif branch_ctrl_stack[branch_depth] == False:
+                    continue
+
+                elif part in data:
+                    # # debug("part in data", data[part])
+                    content += str(data[part])
+
+                else:
+                    # content += part
+                    debug("Invalid variable", part)
 
     return content
+
+
+def urls_in_text(url: dict) -> str:
+    if "url" not in url:
+        return ""
+
+    new_url = ""
+    # info(url)
+    if url["url"].count("jike://page.jk/hashtag/") != 0:
+        new_url = url["url"].split("?refTopicId=")
+        if len(new_url) > 1:
+            new_url = "https://web.okjike.com/topic/" + new_url[1]
+        else:
+            new_url = url["url"]
+    elif url["url"].count("jike://page.jk/user/") != 0:
+        new_url = url["url"].split("/user/")
+        if len(new_url) > 1:
+            new_url = "https://web.okjike.com/u/" + new_url[1]
+        else:
+            new_url = url["url"]
+    else:
+        new_url = url["url"]
+
+    new_content = "<a href=\"" + \
+        new_url + "\" target=\"_blank\">" + \
+        url["title"] + "</a>"
+
+    # info(new_content)
+    return new_content
 
 
 def post_page(json_data_path: str = post_data_path, html_path: str = post_html_url, pic_path: str = post_pic, show_user: bool = False, data_source: str = None, template_path: str = template_url) -> None:
@@ -106,27 +277,33 @@ def post_page(json_data_path: str = post_data_path, html_path: str = post_html_u
         content = f.read()
         # debug(content)
 
-    posts = read_multi_json_file(json_data_path)
-    # debug(posts[:3])
+    posts = read_multi_json_file(json_data_path, print_done=False)
 
-    post_html = ""
+    title = ""
 
     if data_source is not None:
+        title += data_source + " | "
         data_source = " <code class=\"highlight\">" + data_source + "</code>"
     else:
         data_source = ""
 
+    title += "JIKE Archive"
+
     # TODO: some way to filter posts like topic / create time
     start_index = 0
-    end_index = None
+    end_index = END_INDEX
 
     post_content = ""
-    for idx, post in enumerate(posts[start_index:end_index]):
+    for idx, post in tqdm(enumerate(posts[start_index:end_index]), total=len(posts) if end_index is None else end_index - start_index):
+        # info(post["id"])
 
         creat_at = datetime.strptime(
             post['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8())
+        post_id = post['id']
+        # info(post_id)
 
         post_data = {
+            "post_id": post_id,
             "post-idx": str(idx + start_index),
             "user-name": "",
             "user-bio": "",
@@ -137,8 +314,11 @@ def post_page(json_data_path: str = post_data_path, html_path: str = post_html_u
             "post-target": "",
             "post-linkInfo": "",
             "post-like": "",
-            "post-link": ""
+            "post-link": "",
+            "post-comments": ""
         }
+
+        # TODO: write template
 
         if copyright_user["b_show"] == True:
             if "user" in post and post["user"] is not None:
@@ -171,7 +351,7 @@ def post_page(json_data_path: str = post_data_path, html_path: str = post_html_u
             if os.path.isdir(post_pic_path):
                 for pic in post["pictures"]:
                     pic = os.path.join(post_pic_path, pic["picUrl"].split("?")[
-                                    0].split("/")[-1])
+                        0].split("/")[-1])
                     if os.path.isfile(pic):
                         post_data["post-pics"] += "<div class=\"cropped\"><a href=" + pic + \
                             " target=\"_blank\" title=\"open picture\">"
@@ -181,25 +361,9 @@ def post_page(json_data_path: str = post_data_path, html_path: str = post_html_u
         post_content_old: str = post["content"].replace("\n", "<br/>")
         if "urlsInText" in post:
             for url in post["urlsInText"]:
-                new_url = ""
-                if url["url"].count("jike://page.jk/hashtag/") != 0:
-                    new_url = "https://web.okjike.com/topic/" + \
-                        url["url"].split("?refTopicId=")[1]
-                elif url["url"].count("jike://page.jk/user/") != 0:
-                    new_url = "https://web.okjike.com/u/" + \
-                        url["url"].split("/user/")[1]
-                else:
-                    new_url = url["url"]
-
-                new_content = "<a href=\"" + \
-                    new_url + "\" target=\"_blank\">" + \
-                    url["title"] + "</a>"
-                # debug(post_content_old.count(url["originalUrl"]))
-                # debug(url["originalUrl"], new_content)
                 post_content_old = post_content_old.replace(
-                    url["originalUrl"], new_content)
+                    url["originalUrl"], urls_in_text(url))
 
-        # post_content_old = post_content_old.replace()
         post_data["post-content"] = post_content_old
 
         if post["type"] == "REPOST":
@@ -208,7 +372,7 @@ def post_page(json_data_path: str = post_data_path, html_path: str = post_html_u
             if "content" in post["target"]:
                 if "user" in post["target"] and post["target"]["user"] is not None:
                     post_data["post-target"] += "<div>"
-                    post_data["post-target"] += "<h3>" + \
+                    post_data["post-target"] += "<h3 class=\"\">" + \
                         post["target"]["user"]["screenName"] + "</h3>"
                     post_data["post-target"] += "</div>"
                 if "topic" in post["target"] and post["target"]["topic"] is not None:
@@ -238,12 +402,76 @@ def post_page(json_data_path: str = post_data_path, html_path: str = post_html_u
                 "\" target=\"_blank\" title=\"open link\">🔗" + \
                 post["linkInfo"]["title"] + "</a><br/>"
 
+        comm_len = 0
+        comm_data_path = os.path.join(comm_dir_path, post_id + ".json")
+        if os.path.isfile(comm_data_path) == True:
+
+            comments = read_multi_json_file(comm_data_path, print_done=False)
+
+            comm_len = len(comments)
+            for comm_idx, comment in enumerate(comments):
+                b_container_start = True if comm_idx == 0 else False
+                b_container_end = True if comm_idx == comm_len - 1 else False
+
+                hot_replies = ""
+                for hrp_idx, hrp in enumerate(comment["hotReplies"]):
+
+                    pics_link = ""
+                    for pic in hrp["pictures"]:
+                        # TODO: if downloaded
+                        comm_pic_path = os.path.join(pic_path, post["id"])
+                        pics_link += "<br /><a href=\"" + \
+                            pic["picUrl"] + "\" target=\"_blank\">🖼️ " + \
+                            pic["format"] + "</a>"
+
+                    hrp_content: str = hrp["content"].replace("\n", "<br/>")
+                    if "urlsInText" in hrp and hrp["urlsInText"] is not None:
+                        for url in hrp["urlsInText"]:
+                            hrp_content = hrp_content.replace(
+                                url["originalUrl"], urls_in_text(url))
+
+                    hot_replies += template_insert(None, template_comment_url, {"user-name": hrp["user"]["screenName"], "create-time": datetime.strptime(
+                        hrp["createdAt"], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8()).__format__("%Y-%m-%d %X %Z"), "content": hrp_content + pics_link, "to-user-name": hrp["replyToComment"]["user"]["screenName"], "level": hrp["level"]})
+
+                pics_link = ""
+                for pic in comment["pictures"]:
+                    pics_link += "<br /><a href=\"" + \
+                        pic["picUrl"] + "\" target=\"_blank\">🖼️ " + \
+                        pic["format"] + "</a>"
+
+                comment_content: str = comment["content"].replace(
+                    "\n", "<br/>")
+                if "urlsInText" in comment and comment["urlsInText"] is not None:
+                    for url in comment["urlsInText"]:
+                        comment_content = comment_content.replace(
+                            url["originalUrl"], urls_in_text(url))
+
+                comm_data = {"container-start": b_container_start,
+                             "container-end": b_container_end,
+                             "num-comment": comm_len,
+                             "post-idx": str(idx + start_index),
+                             "user-name": comment["user"]["screenName"],
+                             "create-time": datetime.strptime(comment["createdAt"], "%Y-%m-%dT%X.%fZ").
+                             replace(tzinfo=UTC()).astimezone(
+                                 GMT8()).__format__("%Y-%m-%d %X %Z"),
+                             "content": comment_content + pics_link,
+                             "level": comment["level"],
+                             "hot-replies": hot_replies if hot_replies != "" else False}
+
+                post_data["post-comments"] += template_insert(
+                    None, template_comment_url, comm_data)
+
+        else:
+            post_data["post-comments"] = template_insert(
+                None, template_comment_url, {"container-start": True, "container-end": True, "num-comment": comm_len, "post-idx": str(idx + start_index)})
+
         post_data["post-like"] = template_insert(None,
                                                  template_like_url,
                                                  {"like": str(post["likeCount"]),
                                                   "comment": str(post["commentCount"]),
                                                   "share": str(post["repostCount"]),
-                                                  "repost": str(post["repostCount"])})
+                                                  "repost": str(post["repostCount"]),
+                                                  "post-idx": str(idx + start_index)})
 
         post_data["post-link"] += post["type"] + "</code><code><a href=\"https://web.okjike.com/originalPost/" + \
             post["id"] + "\" target=\"_blank\" title=\"open in Jike\">" + \
@@ -264,7 +492,8 @@ def post_page(json_data_path: str = post_data_path, html_path: str = post_html_u
         copyright_content += "</a></text>"
 
     data = {
-        "title": data_source,
+        "title": title,
+        "data-source": data_source,
         "curr-time": str(datetime.now(GMT8())),
         "post": post_content,
         "post-count": str(idx+1),

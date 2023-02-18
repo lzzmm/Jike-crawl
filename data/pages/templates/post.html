@@ -1,3 +1,7 @@
+<!-- 
+    create at: 2023-02-15T16:21:57Z+08:00
+    author:    lzzmm<2313681700@qq.com>
+-->
 <div id="post-{% post-idx %}" class="post">
     <h2><code>#{% post-idx %} {% create-time %}</code><br />{% user-name %}</h2>
     <div>
@@ -21,6 +25,9 @@
     <div>
         {% post-like %}
     </div>
+    <div class="post-comments">
+        {% post-comments %}
+    </div><br />
     <div>
         <code class="highlight">
             {% post-link %}

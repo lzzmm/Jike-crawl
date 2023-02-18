@@ -34,7 +34,7 @@ COOKIES = {
 
 PAYLOAD_USER_FEEDS = {
     "operationName": "UserFeeds",
-    "query": open(os.path.join(DIR_PATH, "query/query_user_feeds.txt")).read(),
+    "query": open(os.path.join(DIR_PATH, "query/query_user_feeds.graphql")).read(),
     "variables": {
         "username": ""
     }
@@ -42,14 +42,32 @@ PAYLOAD_USER_FEEDS = {
 
 PAYLOAD_FETCH_SELF_FEEDS = {
     "operationName": "FetchSelfFeeds",
-    "query": open(os.path.join(DIR_PATH, "query/query_fetch_self_feeds.txt")).read(),
+    "query": open(os.path.join(DIR_PATH, "query/query_fetch_self_feeds.graphql")).read(),
     "variables": {}
 }
 
 PAYLOAD_USER_COLLECTIONS = {
     "operationName": "UserCollections",
     "variables": {},
-    "query": open(os.path.join(DIR_PATH, "query/query_user_collections.txt")).read()
+    "query": open(os.path.join(DIR_PATH, "query/query_user_collections.graphql")).read()
+}
+
+PAYLOAD_MESSAGE_COMMENTS = {
+    "operationName": "MessageComments",
+    "variables": {
+        "messageId": "",
+        "messageType": ""
+    },
+    "query": open(os.path.join(DIR_PATH, "query/query_message_comments.graphql")).read()
+}
+
+PAYLOAD_SUB_COMMENTS = {
+    "operationName": "ListSubComments",
+    "variables": {
+        "targetType": "",
+        "commentId": ""
+    },
+    "query": open(os.path.join(DIR_PATH, "query/query_list_sub_comments.graphql")).read()
 }
 
 PAYLOAD_REFRESH_COOKIES = {
@@ -61,7 +79,7 @@ PAYLOAD_REFRESH_COOKIES = {
 PAYLOAD_LIST_NOTIFICATION = {
     "operationName": "ListNotification",
     "variables": {},
-    "query": open(os.path.join(DIR_PATH, "query/query_notifications.txt")).read()
+    "query": open(os.path.join(DIR_PATH, "query/query_notifications.graphql")).read()
 }
 
 PAYLOAD_LIKE = {
@@ -95,7 +113,7 @@ PAYLOAD_SEARCH_INTEGRATE = {
     "variables": {
         "keywords": ""
     },
-    "query": open(os.path.join(DIR_PATH, "query/query_search_integrate.txt")).read()
+    "query": open(os.path.join(DIR_PATH, "query/query_search_integrate.graphql")).read()
 }
 
 PAYLOAD_HIDE = {
