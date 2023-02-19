@@ -101,10 +101,22 @@ code.highlight,
 }
 
 .close-comment-button {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
     padding: 10px;
 }
 
 .close-comment-button>button.highlight {
+    font-family: CamingoCodeRegular,
+        Consolas,
+        "Fira Code",
+        Menlo,
+        Monaco,
+        "Courier New",
+        monospace;
+    border: 0;
+    color: #03aaee;
     background-color: #ddf8ff;
     box-shadow: 0 0 10px 4px #eef6fd;
 }
@@ -147,6 +159,7 @@ a {
 }
 
 .post-comments {
+    position: relative;
     background-image: linear-gradient(150deg, #f7fdff, #f8fffd);
 }
 
@@ -174,6 +187,7 @@ a {
 .comments-content {
     padding-top: 5px;
     padding-left: 5px;
+    padding-right: 5px;
     color: #104040;
 }
 
@@ -188,12 +202,12 @@ a {
 
 .hide {
     display: none;
-    animation: show-comment 0.6s;
-    -moz-animation: show-comment 0.6s;
+    animation: hide-comment 0.6s;
+    -moz-animation: hide-comment 0.6s;
     /* Firefox */
-    -webkit-animation: show-comment 0.6s;
+    -webkit-animation: hide-comment 0.6s;
     /* Safari and Chrome */
-    -o-animation: show-comment 0.6s;
+    -o-animation: hide-comment 0.6s;
     /* Opera */
 }
 
@@ -211,11 +225,55 @@ a {
 @keyframes show-comment {
     0% {
         opacity: 0;
+        height: 0px;
         transform: translate(0px, -10px)
     }
 
     100% {
         opacity: 1;
+        height: 100%;
         transform: translate(0, 0)
     }
 }
+
+@keyframes hide-comment {
+    100% {
+        opacity: 0;
+        height: 0px;
+        transform: translate(0px, -10px)
+    }
+
+    0% {
+        opacity: 1;
+        height: 100%;
+        transform: translate(0, 0)
+    }
+}
+/* 
+@keyframes hide-comment-father {
+    100% {
+        opacity: 0;
+        transform: scale(1, 0.0) translate(0, -100%);
+        height: 0%;
+    }
+
+    0% {
+        opacity: 1;
+        transform: scale(1, 1) translate(0, 0);
+        height: 100%;
+    }
+}
+
+@keyframes show-comment-father {
+    0% {
+        opacity: 0;
+        transform: scale(1, 0.0) translate(0, -100%);
+        height: 100%;
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1, 1) translate(0, 0);
+        height: 0%;
+    }
+} */

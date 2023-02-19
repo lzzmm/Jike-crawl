@@ -542,7 +542,7 @@ if __name__ == "__main__":
 
     coll_record_limit = None
 
-    # crawl_collections(coll_path, "a", b_save_coll_pics, coll_record_limit)
-    # crawl_comments(coll_path)
+    crawl_collections(coll_path, "a", b_save_coll_pics, coll_record_limit)
+    crawl_comments(coll_path)
 
     # crawl_profile(user_id)

@@ -40,14 +40,53 @@
         </h2>
     </div>
     <script>
+        var comments = document.querySelectorAll('.post-comments');
+        // Loop through each dynamic div
+        comments.forEach(function (div) {
+            if (div.children[0].children[0].className != "comments-content") {
+                window.addEventListener('scroll', () => { // listen to the scroll event
+                    if (div.children[0].className != "hide") {
+                        const rect = div.children[0].getBoundingClientRect(); // get the dimensions of the content div
+                        if (rect.bottom > 0 && rect.top < window.innerHeight) {
+                            btn = document.getElementById("hide-comments-" + div.children[0].id.split("-")[2]).parentNode
+
+                            if (rect.bottom > window.innerHeight && rect.top < window.innerHeight - 200) { // if the div is out of the page's range
+                                btn.style.position = "fixed"
+                                btn.style.bottom = "10px"
+                                right = window.innerWidth - rect.right - 5
+                                btn.style.right = right.toString() + "px"
+                            } else {
+                                btn.style.position = 'absolute';
+                                btn.style.bottom = "10px"
+                                btn.style.right = "10px"
+                            }
+                        }
+                    }
+                });
+            }
+        });
         function show_hide(self) {
             box = document.getElementById("comments-container-" + self.id.split("-")[2]);
             // console.log("show_hide-" + self.id);
             if (box.className == "show") {
-                box.className = "hide";
                 // self.value = "show";
+                // TODO: scroll back to pos
+                var comment_btn = document.querySelector("#show-comments-" + self.id.split("-")[2])
+                if (comment_btn.getBoundingClientRect().bottom < 0) {
+                    comment_btn.scrollIntoView({
+                        behavior: "smooth",
+                        block: "nearest",
+                        inline: "nearest"
+                    })
+                }
+                box.style.animation = "hide-comment 0.6s"
+                // box.parentNode.style.animation = "hide-comment-father 0.6s"
+                setTimeout(function () { box.className = "hide" }, 500);
+                // box.className = "hide";
             }
             else {
+                // box.parentNode.style.animation = "show-comment-father 0.6s"
+                box.style.animation = "show-comment 0.6s"
                 box.className = "show";
                 // self.value = "hide";
             }

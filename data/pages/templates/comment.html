@@ -3,7 +3,7 @@
     author:    lzzmm<2313681700@qq.com>
 -->
 {% if container-start %}
-<div id="comments-container-{% post-idx %}" class="hide">
+<div id="comments-container-{% post-idx %}" class="hide" style="overflow: hidden;">
     {% endif %}
 
     {% if user-name %}
@@ -28,12 +28,11 @@
     {% if container-end %}
     <!-- TODO: hide -->
     {% if num-comment > 0 %}
-    <div class="like">
-        <div class="close-comment-button">
-            <button id="show-comments-{% post-idx %}" class="highlight" onclick="show_hide(this)" style="cursor: hand;">
-                Close
-            </button>
-        </div>
+    <div style="padding:20px"> </div>  <!-- for hide button -->
+    <div class="close-comment-button" id="close-comment-button-{% post-idx %}">
+        <button id="hide-comments-{% post-idx %}" class="highlight" onclick="show_hide(this)" style="cursor: hand;">
+            Hide Comments
+        </button>
     </div>
     {% endif %}
 </div>

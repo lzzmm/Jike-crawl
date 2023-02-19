@@ -21,6 +21,7 @@ from utils import *
 # DONE: function to call
 
 config_show_pic = True
+START_INDEX = 0
 END_INDEX = None
 
 post_data_path = os.path.join(DIR_PATH, "data/posts.json").replace("\\", "/")
@@ -290,7 +291,7 @@ def post_page(json_data_path: str = post_data_path, html_path: str = post_html_u
     title += "JIKE Archive"
 
     # TODO: some way to filter posts like topic / create time
-    start_index = 0
+    start_index = START_INDEX
     end_index = END_INDEX
 
     post_content = ""
