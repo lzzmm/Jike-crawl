@@ -1,7 +1,15 @@
 # -*- coding:utf8 -*-
 # create at: 2023-02-13T21:28:47Z+08:00
 # author:    lzzmm<2313681700@qq.com>
-# comment:   This file contains functions for creating HTML pages from json data
+# comment:   This file contains functions for creating HTML pages from json data.
+#            Self-made, no MVC / MVVC, all the code converge into a mount of shit.
+#            This can be done more elegantly by using javascript but,
+#            unfortunately, I don't think I can develop a javascript program 
+#            though I have studied a little bit javascript.
+#            To speed up the loading of a huge HTML page with so many posts,
+#            TODO: Try to seperate into many HTML files and you can visit through hyperlink.
+#                  There will be at most 1,024 posts in one page.
+#            TODO: improve code structure by rewrite template_insert()
 
 import os
 import re
@@ -23,6 +31,7 @@ from utils import *
 config_show_pic = True
 START_INDEX = 0
 END_INDEX = None
+POST_LIMIT = 512 # 1024
 
 post_data_path = os.path.join(DIR_PATH, "data/posts.json").replace("\\", "/")
 coll_data_path = os.path.join(DIR_PATH, "data/collections.json")
@@ -260,6 +269,10 @@ def urls_in_text(url: dict) -> str:
 
     # info(new_content)
     return new_content
+
+
+def make_html_page()->str:
+    ...
 
 
 def post_page(json_data_path: str = post_data_path, html_path: str = post_html_url, pic_path: str = post_pic, show_user: bool = False, data_source: str = None, template_path: str = template_url) -> None:

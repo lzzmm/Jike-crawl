@@ -1,18 +1,13 @@
-<!--
-    create at: 2023-02-13T21:28:47Z+08:00
-    author:    lzzmm<2313681700@qq.com>
--->
 <!DOCTYPE html>
-
 <head>
     <meta content="text/html; charset=utf-8" />
     <title>{% title %}</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.1/dist/echarts.min.js"></script>
     <!-- NOTE: link to css file base on posts.html but not on this page-->
     <link rel="stylesheet" type="text/css" href="style.css">
     <style>
     </style>
 </head>
-
 <body class="main">
     <div>
         <h1>JIKE Archive</h1>
@@ -70,7 +65,7 @@
             // console.log("show_hide-" + self.id);
             if (box.className == "show") {
                 // self.value = "show";
-                // TODO: scroll back to pos
+                // scroll back to pos
                 var comment_btn = document.querySelector("#show-comments-" + self.id.split("-")[2])
                 if (comment_btn.getBoundingClientRect().bottom < 0) {
                     comment_btn.scrollIntoView({

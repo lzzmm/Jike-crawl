@@ -10,11 +10,20 @@ TODO:
 2. update README
 3. kuakua
 
+profile createAt xx days
+xx posts a year
+xx replies
+xx likes
+3 most interact
+3 most topic
+
 [中文](#删号跑路中文)
 
 ## 建议通过 `src/main.ipynb` 运行
 
 ## Jike-crawl (EN)
+
+> last update at 2023-02-19
 
 Crawl posts, notifications, and maybe collections on Jike and save them into `csv file`(undone) / `json file` / `MySQL`(undone) before you delete your Jike account. Pictures in posts can be downloaded, too.
 
@@ -144,6 +153,8 @@ run `like_posts.py`
 ## 删号跑路（中文）
 
 [EN](#jike-crawl-en)
+
+> last update at 2023-02-19
 
 在注销即刻账号跑路之前保存自己的动态和消息。
 
