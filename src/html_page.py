@@ -36,7 +36,7 @@ POST_LIMIT = 512 # 1024
 post_data_path = os.path.join(DIR_PATH, "data/posts.json").replace("\\", "/")
 coll_data_path = os.path.join(DIR_PATH, "data/collections.json")
 comm_dir_path = os.path.join(DIR_PATH, "data/comments/")
-
+report_data_path = os.path.join(DIR_PATH, "data/report_data.json")
 
 post_pic = os.path.join(DIR_PATH, "data/pics/posts/")
 coll_pic = os.path.join(DIR_PATH, "data/pics/collections/")
@@ -49,11 +49,15 @@ template_comment_url = os.path.join(
     DIR_PATH, "data/pages/templates/comment.html").replace("\\", "/")
 template_url = os.path.join(
     DIR_PATH, "data/pages/templates/template.html").replace("\\", "/")
+template_report_url = os.path.join(
+    DIR_PATH, "data/pages/templates/report.html").replace("\\", "/")
 
 post_html_url = os.path.join(
     DIR_PATH, "data/pages/posts.html").replace("\\", "/")
 coll_html_url = os.path.join(
     DIR_PATH, "data/pages/collections.html").replace("\\", "/")
+report_html_url = os.path.join(
+    DIR_PATH, "data/pages/report.html").replace("\\", "/")
 
 
 def template_insert(template_str: str, template_path: str, data: dict) -> str:
@@ -546,18 +550,38 @@ def post_page(json_data_path: str = post_data_path, html_path: str = post_html_u
         "copyright": copyright_content
     }
 
-    content = template_insert(None, template_url, data)
+    content = template_insert(None, template_path, data)
+
+    with open(html_path, "w", encoding="utf8") as f:
+        f.write(content)
+
+
+def report_page(json_data_path: str = report_data_path, html_path: str = report_html_url, template_path: str = template_report_url) -> None:
+    
+    content = ""
+
+    with open(template_path, "r", encoding="utf8") as f:
+        content = f.read()
+        # info(content)
+
+    data = read_json_file(json_data_path, print_done=False)
+    
+    data['curr_time'] = CURR_TIME
+
+    content = template_insert(None, template_path, data)
 
     with open(html_path, "w", encoding="utf8") as f:
         f.write(content)
 
 
 if __name__ == "__main__":
-
-    post_page(data_source="User Posts")
-    webbrowser.open_new_tab(post_html_url)
-    done(post_html_url, "opened.")
-    post_page(coll_data_path, coll_html_url,
-              coll_pic, True, "User Collections")
-    webbrowser.open_new_tab(coll_html_url)
-    done(coll_html_url, "opened.")
+    # post_page(data_source="User Posts")
+    # webbrowser.open_new_tab(post_html_url)
+    # done(post_html_url, "opened.")
+    # post_page(coll_data_path, coll_html_url,
+    #           coll_pic, True, "User Collections")
+    # webbrowser.open_new_tab(coll_html_url)
+    # done(coll_html_url, "opened.")
+    report_page()
+    webbrowser.open_new_tab(report_html_url)
+    done(report_html_url, "opened.")

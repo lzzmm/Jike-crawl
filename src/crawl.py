@@ -466,11 +466,27 @@ def crawl_profile(user_id: str) -> None:
     response = call_api_get(api, payload)
 
     info(response)
-    # debug(response.json())
+    
+    user = response.json()["user"]
+    
     path = os.path.join(DIR_PATH, "data/profiles/" +
-                        response.json()["user"]["username"] + "-profile.json")
+                        user["username"] + "-profile.json")
 
-    save_json(response.json()["user"], path, "w", 2)
+    save_json(user, path, "w", 2)
+    
+    report_data_path = os.path.join(DIR_PATH, "data/report_data.json")
+    
+    json_data = read_json_file(report_data_path)
+    
+    json_data['username'] = user['screenName']
+    json_data['uuid'] = user['username']
+    
+    create_time = datetime.strptime(
+        user['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8())
+    time_delta = CURR_TIME - create_time
+    json_data['total_days'] = time_delta.days
+    
+    save_json(json_data, report_data_path, 'w', 2)
 
     done("Data saved into", path)
 
@@ -545,4 +561,4 @@ if __name__ == "__main__":
     crawl_collections(coll_path, "a", b_save_coll_pics, coll_record_limit)
     crawl_comments(coll_path)
 
-    # crawl_profile(user_id)
+    crawl_profile(user_id)

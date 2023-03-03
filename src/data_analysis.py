@@ -9,7 +9,10 @@ import requests
 from datetime import datetime, timedelta, tzinfo
 
 from common import *
-from utils import read_multi_json_file
+from utils import read_multi_json_file, read_json_file, save_json
+
+report_data_path = os.path.join(DIR_PATH, "data/report_data.json")
+
 
 
 def summarize_notifications(path):
@@ -24,13 +27,15 @@ def summarize_notifications(path):
         reply_count,
         avatar_greet_count,
         followed_count,
+        curiosity_count,
         like_count_all,
         comment_count_all,
         like_comment_count_all,
         reply_count_all,
         avatar_greet_count_all,
-        followed_count_all
-    ) = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        followed_count_all,
+        curiosity_count_all
+    ) = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     
     # TODO: repeated id
 
@@ -49,6 +54,8 @@ def summarize_notifications(path):
             avatar_greet_count_all += user_num
         elif node['type'] == "USER_FOLLOWED" or node['type'] == "USER_SILENT_FOLLOWED":
             followed_count_all += user_num
+        elif node['type'] == "CURIOSITY_REPLIED_MY_MENTIONING" or node['type'] == "CURIOSITY_ANSWER_REACTION" or node['type'] == "CURIOSITY_MENTION_ME_ANSWER":
+            curiosity_count_all += user_num
         # see README.md->Appendices for more data like CURIOSITY_ANSWER_REACTION
 
         for user in node['actionItem']['users']:
@@ -78,6 +85,8 @@ def summarize_notifications(path):
                 avatar_greet_count += user_num
             elif node['type'] == "USER_FOLLOWED" or node['type'] == "USER_SILENT_FOLLOWED":
                 followed_count += user_num
+            elif node['type'] == "CURIOSITY_REPLIED_MY_MENTIONING" or node['type'] == "CURIOSITY_ANSWER_REACTION" or node['type'] == "CURIOSITY_MENTION_ME_ANSWER":
+                curiosity_count += user_num
 
             for user in node['actionItem']['users']:
                 if user['username'] not in users:
@@ -88,8 +97,12 @@ def summarize_notifications(path):
                 else:
                     users[user['username']]['count'] += 1
 
+    friend_count = len(users)
+    interaction_count = like_count + comment_count + like_comment_count + \
+        reply_count + avatar_greet_count + curiosity_count
+
     print("\n")
-    print("\033[4;33m%d\033[0m user(s) interacted with you in \033[34mlast year:\033[0m" % len(users))
+    print("\033[4;33m%d\033[0m user(s) interacted with you in \033[34mlast year:\033[0m" % friend_count)
     print("\033[4;33m%d\033[0m post-like(s), \033[4;33m%d\033[0m comment(s), \033[4;33m%d\033[0m comment-like(s),\n\033[4;33m%d\033[0m replie(s), \033[4;33m%d\033[0m avatar greet(s), and \033[4;33m%d\033[0m user(s) have followed you.\n" %
           (like_count, comment_count, like_comment_count, reply_count, avatar_greet_count, followed_count))
 
@@ -111,15 +124,35 @@ def summarize_notifications(path):
         :10]  # could change
     print("\033[4;33m%d users\033[0m who interact with you most:" %
           len(most_act_users))
+    
+    three_most_interactive = []
+    three_most_interactive_time = []
     for user in most_act_users:
         print('\033[33m{0:<20}\033[0m\t\033[33m{1:<3}\033[0m {2:<}'.format(
             user[1]['screenName'], user[1]['count'], "time(s)"), chr(12288))
+        three_most_interactive.append(user[1]['screenName'])
+        three_most_interactive_time.append(user[1]['count'])
 
     print("")
     print("Your likes and comments are \033[4mNOT\033[0m included.")
     CURR_TIME = datetime.now(GMT8())
     print("Generated at", CURR_TIME)
     print("")
+
+        
+    json_data = read_json_file(report_data_path)
+    
+    # json_data["year"] = CURR_YEAR-1
+    # json_data["total_posts"] = sum(post_count)
+    # json_data["total_likes"] = like_count_all
+    json_data["likes"] = like_count
+    json_data["replies"] = reply_count
+    json_data["friends"] = friend_count
+    json_data["interactions"] = interaction_count
+    json_data["three_most_interactive"] = str(three_most_interactive[:3])
+    json_data["interaction_count"] = str(three_most_interactive_time[:3])
+    
+    save_json(json_data, report_data_path, 'w', 2)
 
 
 def summarize_posts(path):
@@ -140,11 +173,13 @@ def summarize_posts(path):
         share_count_all,
         pic_count_all
     ) = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    
+    daily_post_count = [0] * 366
 
     for node in x:
-
-        post_count[datetime.strptime(
-            node['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8()).year - BASE_YEAR] += 1
+        create_at = datetime.strptime(
+            node['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8())
+        post_count[create_at.year - BASE_YEAR] += 1
 
         like_count_all += node['likeCount']
         comment_count_all += node['commentCount']
@@ -161,13 +196,16 @@ def summarize_posts(path):
             else:
                 topics_all[node['topic']['id']]['count'] += 1
 
-        if datetime.strptime(node['createdAt'], "%Y-%m-%dT%X.%fZ").replace(tzinfo=UTC()).astimezone(GMT8()).year == (CURR_YEAR-1):
+        if create_at.year == (CURR_YEAR-1):
 
             like_count += node['likeCount']
             comment_count += node['commentCount']
             repost_count += node['repostCount']
             share_count += node['shareCount']
             pic_count += len(node['pictures'])
+            first_day = datetime(create_at.year, 1, 1, tzinfo=GMT8())
+            days_of_year = create_at - first_day
+            daily_post_count[days_of_year.days] += 1
 
             if 'topic' in node and node['topic'] != None:
                 if node['topic']['id'] not in topics:
@@ -178,6 +216,8 @@ def summarize_posts(path):
                 else:
                     topics[node['topic']['id']]['count'] += 1
             # TODO: post time in a day, priority: low
+
+    # print(daily_post_count)
 
     print("\n")
     print("In \033[34m%d\033[0m:" % (CURR_YEAR-1))
@@ -221,9 +261,13 @@ def summarize_posts(path):
     print("\033[4;33m%d topics\033[0m you're most interested in:" %
           len(most_topics))
 
+    three_most_topic = []
+    three_most_topic_post = []
     for topic in most_topics:
         print('\033[33m{0:<12}\033[0m \t==>\t\033[33m{1:>3}\033[0m {2:>}'.format(
             topic[1]['content'], topic[1]['count'], "post(s)"), chr(12288))
+        three_most_topic.append(topic[1]['content'])
+        three_most_topic_post.append(topic[1]['count'])
 
     print("")
     print(
@@ -235,6 +279,19 @@ def summarize_posts(path):
     CURR_TIME = datetime.now(GMT8())
     print("Generated at", CURR_TIME)
     print("")
+    
+    
+    json_data = read_json_file(report_data_path)
+    
+    json_data["year"] = CURR_YEAR-1
+    json_data["total_posts"] = sum(post_count)
+    json_data["total_likes"] = like_count_all
+    json_data["posts"] = post_count[CURR_YEAR-BASE_YEAR-1]
+    json_data["three_most_topic"] = str(three_most_topic[:3])
+    json_data["post_topic"] = str(three_most_topic_post[:3])
+    json_data["daily_post_count"] = str(daily_post_count)
+    
+    save_json(json_data, report_data_path, 'w', 2)
 
 
 if __name__ == "__main__":

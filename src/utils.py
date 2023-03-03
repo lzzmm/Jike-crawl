@@ -275,6 +275,7 @@ def get_user_id(user_name: str) -> str:
 
 
 def call_api_get(api: str, payload: dict = None) -> requests.Response:
+    refresh_cookies()
     headers = HEADERS
     headers["referer"] = "https://web.okjike.com/"
     headers["x-jike-access-token"] = get_access_token()
@@ -548,6 +549,18 @@ def read_multi_json_file(path, lines=None, print_done: bool = True) -> list:
         err("Failed reading file", path,  e.args)
 
     return x
+
+
+def read_json_file(path, print_done: bool = True) -> dict:
+    if not os.path.isfile(path):
+        err("File not found: %s" % path)
+        return {}
+
+    with open(path, 'r', encoding="utf8") as f:
+        data = json.load(f)
+        return data
+        # if print_done == True:
+        #     done("Read from", path)
 
 
 def read_list_file(path, lines=None, print_done: bool = True) -> list:

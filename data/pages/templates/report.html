@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+
+<head>
+    <meta content="text/html; charset=utf-8" />
+    <title>{% title %}</title>
+    <!-- NOTE: link to css file base on posts.html but not on this page-->
+    <!-- <link rel="stylesheet" type="text/css" href="style.css"> -->
+    <style>
+        @font-face {
+            font-family: CamingoCodeRegular;
+            src: url("fonts/CamingoCode-Regular-1.woff");
+        }
+
+        /* -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeSpeed;
+        text-size-adjust: 100%;
+        --message-hover: #f7f7f7;
+        --bg-web-body-1: #f9f9f9;
+        --bg-web-body-1_hover: #f4f4f4;
+        --web-mask: #00000080;
+        --web-icon-gray_hover: #717171;
+        --solid-white-1: #fff;
+        --solid-white-2: #ffffffcc;
+        --solid-white-3: #ffffff80;
+        --solid-gray-1: #dbdbdb;
+        --solid-gray-2: #bfbfbf;
+        --solid-gray-3: grey;
+        --solid-bg-primary-1: #1a1a1a;
+        --solid-gray-4: #333;
+        --solid-label-contributor: #d1823ab3;
+        --solid-label-male: #03a9f4b3;
+        --solid-label-female: #fc689db3;
+        --solid-separator: #ffffff33;
+        --solid-bg-secondary-highlight: #ffffff1a;
+        --solid-bg-story-white: #ffffffe6;
+        --solid-bg-story-black: #000000e6;
+        --solid-bg-story-red: #e4583ee6;
+        --solid-bg-story-yellow: #ffe411e6;
+        --solid-bg-story-green: #1baf5de6;
+        --solid-bg-story-blue: #03a9f4e6;
+        --solid-bg-story-purple: #572285e6;
+        --solid-bg-black-transparent: #00000026;
+        --tint-icon-gray: #999;
+        --tint-orange: #ffd001;
+        --tint-jike-blue: #03a9f4;
+        --tint-success: #1baf5d;
+        --tint-warming: #e4583e;
+        --tint-border: #0000000d;
+        --tint-placeholder: #dbdbdb;
+        --tint-separator: #dbdbdb;
+        --tint-separator-2: #dbdbdb;
+        --tint-primary: #333;
+        --tint-secondary: grey;
+        --tint-tertiary: #bfbfbf;
+        --bg-jike-yellow: #ffe411;
+        --bg-jike-blue: #03a9f4;
+        --bg-jike-live: #e4583e26;
+        --bg-selected-blue: #03a9f41a;
+        --bg-popover: #1a1a1ad9;
+        --bg-overlay: #0000004d;
+        --bg-body-base-1: #fff;
+        --bg-body-base-2: #f0f3f5;
+        --bg-body-1: #fff;
+        --bg-body-2: #fafafa;
+        --bg-on-body-1: #fff;
+        --bg-on-body-2: #f0f3f5;
+        --bg-mask: #0000004d;
+        --bg-surface-base-1: #fff;
+        --bg-warming: #e4583e;
+        --bg-surface-body-1: #f0f3f5;
+        --bg-surface-body-2: #fafafa;
+        --brand-000: #fff;
+        --brand-100: #fff6be;
+        --brand-200: #fff193;
+        --brand-300: #ffeb67;
+        --brand-400: #fee641;
+        --brand-500: #ffe411;
+        --brand-600: #fecb11;
+        --brand-700: #fcb803;
+        --brand-800: #fb9f00;
+        --brand-900: #f97200;
+        --gray-000: #fff;
+        --gray-100: #f4f4f4;
+        --gray-200: #ededed;
+        --gray-300: #dedede;
+        --gray-400: #bfbfbf;
+        --gray-500: #999;
+        --gray-600: #737373;
+        --gray-700: #5f5f5f;
+        --gray-800: #404040;
+        --gray-900: #1f1f1f;
+        --bg-100: #f8fafb;
+        --bg-200: #f2f5f8;
+        --bg-300: #e9eef2;
+        --blue-000: #fff;
+        --blue-100: #a0e3fe;
+        --blue-200: #81d4fb;
+        --blue-300: #4ec3f8;
+        --blue-400: #28b5f7;
+        --blue-500: #03a9f5;
+        --blue-600: #049ae6;
+        --blue-700: #0487d2;
+        --blue-800: #0476be;
+        --blue-900: #03569c;
+        --red: #e4583e;
+        --page-background: #eff3f6;
+        --card-press-shadow: 0px 1px 3px rgba(0, 0, 0, .2),
+        0px 1px 20px rgba(157, 182, 200, .1);
+        --profile-color: #fff;
+        --related-border: rgba(0, 0, 0, .05);
+        border: 0 solid #e5e7eb;
+        --tw-ring-offset-color: #fff;
+        --tw-ring-color: rgba(59, 130, 246, .5);
+        --tw-ring-offset-shadow: 0 0 #0000;
+        --tw-ring-shadow: 0 0 #0000;
+        --tw-shadow: 0 0 #0000;
+        --tw-shadow-colored: 0 0 #0000;
+ */
+
+        /* #download {
+            position: absolute;
+            color: #03aaee;
+            background-color: #ddf6ff;
+            border-radius: 4px;
+            border: 0;
+            box-shadow: 0 0 10px 4px #eef6fd;
+        } */
+
+        body {
+            background-color: #FFF;
+        }
+    </style>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.1/dist/echarts.min.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.1/echarts.min.js"
+        integrity="sha512-OTbGFYPLe3jhy4bUwbB8nls0TFgz10kn0TLkmyA+l3FyivDs31zsXCjOis7YGDtE2Jsy0+fzW+3/OVoPVujPmQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts-gl/2.0.8/echarts-gl.min.js"
+        integrity="sha512-BU2/2iqpnDMN4hyqWPLo5MsqlkOF2xOVC8we4iZVZ7xhGfkk7tSiLnxPJb0xZrbhjmtb7qBQ7w3WdAtF13b1sQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+
+<body>
+    <div id="fusion" style="width: 1440px; height: 1080px; position: absolute; top: 0; left: center;"></div>
+
+    <script type="text/javascript">
+        themes = [
+            {
+                // theme 0
+                'background': '#FFFF50',
+                'section_title': '#03a9f4DD',
+                'title': '#03a9f4',
+                'title_trans': '#03a9f4AA',
+                'numbers': '#1baf5d',
+                'numbers_background': '#03a9f420',
+                'list_three_color': '#1b7fed',
+                'cal_vis_low': '#4fa',
+                'cal_vis_high': '#197', 
+                'bar_vis_low': '#4fa',
+                'bar_vis_high': '#197',
+                'cal_zero': '#eeffff',
+                'label': '#ccaa22',
+                'ranking': '#03a9f455',
+                'footer': '#1b7fedAA',
+                'num_font': 'CamingoCodeRegular',
+            }, 
+            {
+                // theme 1 blue
+                'background': '#FDFEFF',
+                'section_title': '#03a9f4DD',
+                'title': '#03a9f4',
+                'title_trans': '#03a9f4AA',
+                'numbers': '#1b7fed',
+                'numbers_background': '#03a9f420',
+                'list_three_color': '#1b7fed',
+                'cal_vis_low': '#5ff',
+                'cal_vis_high': '#19f',
+                'bar_vis_low': '#5ff',
+                'bar_vis_high': '#19f',
+                'cal_zero': '#e9f9ff',
+                'label': '#2288bb',
+                'ranking': '#03a9f444',
+                'footer': '#1b7fedAA',
+                'num_font': 'CamingoCodeRegular',
+            }, 
+            {
+                // theme 2 yellow
+                'background': '#FDFEFE',
+                'section_title': '#EEEE44DD',
+                'title': '#EC0',
+                'title_trans': '#EEDD00AA',
+                'numbers': '#EC2',
+                'numbers_background': '#EFEF2240',
+                'list_three_color': '#FC4',
+                'cal_vis_low': '#FF4',
+                'cal_vis_high': '#A40',
+                'bar_vis_low': '#FF4',
+                'bar_vis_high': '#FA2',
+                'cal_zero': '#f9f9d9',
+                'label': '#FC4',
+                'ranking': '#DDDD2244',
+                'footer': '#FFDD22AA',
+                'num_font': 'CamingoCodeRegular',
+            },
+            {
+                // theme 3 green & blue
+                'background': '#FEFEFE',
+                'section_title': '#03a9f4DD',
+                'title': '#03a9f4',
+                'title_trans': '#03a9f4AA',
+                'numbers': '#19f',
+                'numbers_background': '#03a9f420',
+                'list_three_color': '#1b7fed',
+                'cal_vis_low': '#4fa',
+                'cal_vis_high': '#197',
+                'bar_vis_low': '#4fa',
+                'bar_vis_high': '#197',
+                'cal_zero': '#eeffff',
+                'label': '#4fb',
+                'ranking': '#03a9f455',
+                'footer': '#1b7fedAA',
+                'num_font': 'CamingoCodeRegular',
+            },  
+            {
+                // theme 4 green
+                'background': '#FEFEFE',
+                'section_title': '#03d99aDD',
+                'title': '#1bcfa9',
+                'title_trans': '#03e9a4AA',
+                'numbers': '#0ba',
+                'numbers_background': '#03e9a420',
+                'list_three_color': '#03a984',
+                'cal_vis_low': '#4fa',
+                'cal_vis_high': '#197',
+                'bar_vis_low': '#4fa',
+                'bar_vis_high': '#197',
+                'cal_zero': '#eeffff',
+                'label': '#4fb',
+                'ranking': '#03e9a455',
+                'footer': '#1bdfadAA',
+                'num_font': 'CamingoCodeRegular',
+            }, 
+            {
+                // theme 5 dark green
+                'background': '#232323',
+                'section_title': '#03d99aDD',
+                'title': '#1bcfa9',
+                'title_trans': '#03e9a4AA',
+                'numbers': '#0ba',
+                'numbers_background': '#03e9a410',
+                'list_three_color': '#03b984',
+                'cal_vis_low': '#064',
+                'cal_vis_high': '#5f6',
+                'bar_vis_low': '#197',
+                'bar_vis_high': '#5f6',
+                'cal_zero': '#333',
+                'label': '#4fb',
+                'ranking': '#03e9a455',
+                'footer': '#1bdfadAA',
+                'num_font': 'CamingoCodeRegular',
+            }, 
+            {
+                // theme 6 gray
+                'background': '#FEFEFE',
+                'section_title': '#888888DD',
+                'title': '#888',
+                'title_trans': '#888888AA',
+                'numbers': '#666',
+                'numbers_background': '#67676720',
+                'list_three_color': '#5A5A5A',
+                'cal_vis_low': '#CCC',
+                'cal_vis_high': '#666',
+                'bar_vis_low': '#CCC',
+                'bar_vis_high': '#888',
+                'cal_zero': '#f9f9f9',
+                'label': '#888',
+                'ranking': '#88888844',
+                'footer': '#666666AA',
+                'num_font': 'CamingoCodeRegular',
+            },
+        ]
+
+        theme = themes[5]
+
+        let body_style = document.body.style
+        body_style.background = theme['background']
+
+        // var file, scripts = document.getElementsByTagName("script");
+        // file = scripts[scripts.length - 1].getAttribute("src");
+        // fetch('report_data.json')
+        //         .then((response) => response.json())
+        //         .then((json) => console.log(json));
+        // Cross origin requests are only supported for HTTP." error when loading a local file
+        // use python tiny HTTP server may works but I choose to use the template directly.
+        const userid = "D5560B5D-7448-4E1A-B43A-EC2D2C9AB7EC";
+        const username = '{% username %}';
+        const year = {% year %};
+        const userLink = 'https://web.okjike.com/u/' + '{% uuid %}';
+
+        const total_posts = {% total_posts %};
+        const total_days = {% total_days %};
+        const total_likes = {% total_likes %};
+        const posts = {% posts %};
+        const likes = {% likes %};
+        const replies = {% replies %};
+        const friends = {% friends %};
+        const interactions = {% interactions %};
+
+        // TODO:
+        const respected_text = '{% respected_text %}';
+        const greet_text = '{% greet_text %}';
+
+        const three_most_interactive = {% three_most_interactive %};
+        const interaction_count = {% interaction_count %}
+        const three_most_topic = {% three_most_topic %};
+        const post_topic = {% post_topic %};
+
+        const daily_post_count = {% daily_post_count %}
+        var data_d = [];
+        var data_w = [];
+        const date = +echarts.time.parse(year + '-01-01');
+        const end = +echarts.time.parse(+year + 1 + '-01-01');
+        const dayTime = 3600 * 24 * 1000;
+        // console.log(year)
+        var count = 0;
+        var max_d = 0;
+        for (let time = date, i = 0; time < end;) {
+            var sum = 0;
+            day_in_week = new Date(time);
+            for (var j = day_in_week.getDay(); j < 7 && time < end; j++, time += dayTime) {
+                // console.log(j)
+                // day = Math.floor(Math.random() * 10);
+                day = daily_post_count[i++];
+                data_d.push([echarts.time.format(time, '{yyyy}-{MM}-{dd}', false), day]);
+                if (max_d < day) max_d = day;
+                sum += day;
+            }
+            data_w.push(sum);
+        }
+
+        var max_w = Math.max.apply(null, data_w);
+
+        // fusion
+        var fusionChart = echarts.init(document.getElementById('fusion'));
+
+        var fusionOption = {
+            renderer: 'canvas',
+            backgroundColor: theme['background'],
+            title: [
+                {
+                    top: 28,
+                    left: 80,
+                    text: 'JIKE Statistics',
+                    textStyle: {
+                        fontSize: 24,
+                        color: theme['title'],
+                    }
+                },
+                {
+                    top: 28,
+                    right: 80,
+                    text: [
+                        '在即刻{a|' + total_days + '}天',
+                    ],
+                    // text: '在即刻的第' + total_days + '天，' + '共发送动态' + total_posts + '条',
+                    textStyle: {
+                        align: 'right',
+                        fontSize: 32,
+                        color: theme['title'],
+                        rich: {
+                            a: {
+                                align: 'right',
+                                fontWeight: 'bold',
+                                fontFamily: theme['num_font'],
+                                fontSize: 36,
+                                color: theme['numbers'],
+                                backgroundColor: theme['numbers_background'],
+                            },
+
+                        }
+                    }
+                },
+                {
+                    top: 64,
+                    right: 80,
+                    text: ['现存动态{a|' + total_posts + '}条'],
+                    textStyle: {
+                        align: 'right',
+                        fontSize: 32,
+                        color: theme['title'],
+                        rich: {
+                            a: {
+                                align: 'right',
+                                fontWeight: 'bold',
+                                fontFamily: theme['num_font'],
+                                fontSize: 36,
+                                color: theme['numbers'],
+                                backgroundColor: theme['numbers_background'],
+                            }
+                        }
+                    }
+                },
+                {
+                    top: 100,
+                    right: 80,
+                    text: ['共获赞{a|' + total_likes + '}次'],
+                    textStyle: {
+                        align: 'right',
+                        fontSize: 32,
+                        color: theme['title'],
+                        rich: {
+                            a: {
+                                align: 'right',
+                                fontWeight: 'bold',
+                                fontFamily: theme['num_font'],
+                                fontSize: 36,
+                                color: theme['numbers'],
+                                backgroundColor: theme['numbers_background'],
+                            }
+                        }
+                    }
+                },
+                {
+                    top: 20,
+                    left: 40,
+                    text: [
+                        '{a|}',
+                    ],
+                    textStyle: {
+                        fontSize: 20,
+                        rich: {
+                            a: {
+                                width: 32,
+                                height: 32,
+                                // borderRadius: [16, 16, 0, 0],
+                                backgroundColor: {
+                                    image: 'data:image/png;base64,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',
+                                    // 这里可以是图片的 URL，
+                                    // 或者图片的 dataURI，
+                                    // 或者 HTMLImageElement 对象，
+                                    // 或者 HTMLCanvasElement 对象。
+                                }
+                            },
+                        }
+                    }
+                },
+                {
+                    top: 28,
+                    left: 255,
+                    text: '· ' + username + ' · ' + year,
+                    link: userLink,
+                    textStyle: {
+                        fontSize: 24,
+                        fontWeight: 'bold',
+                        color: theme['title'],
+                    }
+                },
+                {
+                    top: 100,
+                    left: 80,
+                    text: 'Daily Post Count',
+                    textStyle: {
+                        fontSize: 20,
+                        color: theme['section_title'],
+                    }
+                },
+                {
+                    top: 600,
+                    left: 80,
+                    text: 'Annual Statistics',
+                    textStyle: {
+                        fontSize: 20,
+                        color: theme['section_title'],
+                    }
+                },
+                {
+                    top: 650,
+                    left: 80,
+                    text: '在过去的' + year + '年里\n共发布{a|' + posts + '}条动态',
+                    textStyle: {
+                        fontSize: 32,
+                        color: theme['title'],
+                        rich: {
+                            a: {
+                                align: 'center',
+                                verticalAlign: 'middle',
+                                fontWeight: 'bold',
+                                fontFamily: theme['num_font'],
+                                fontSize: 36,
+                                color: theme['numbers'],
+                                backgroundColor: theme['numbers_background'],
+                            }
+                        }
+                    }
+                },
+                {
+                    top: 650,
+                    left: 720,
+                    text: '{a|' + friends + '}位即友与你进行了{a|' + interactions + '}次互动\n收到{a|' + likes + '}赞和{a|' + replies + '}评论',
+                    textStyle: {
+                        fontSize: 32,
+                        color: theme['title'],
+                        rich: {
+                            a: {
+                                // align: 'center',
+                                verticalAlign: 'middle',
+                                fontWeight: 'bold',
+                                fontFamily: theme['num_font'],
+                                fontSize: 36,
+                                color: theme['numbers'],
+                                backgroundColor: theme['numbers_background'],
+                            }
+                        }
+                    }
+                },
+                {
+                    top: 970,
+                    left: 80,
+                    text: respected_text + greet_text,
+                    textStyle: {
+                        fontSize: 32,
+                        color: theme['title'],
+                        rich: {
+                            a: {
+                                align: 'center',
+                                verticalAlign: 'middle',
+                                fontWeight: 'bold',
+                                fontFamily: theme['num_font'],
+                                fontSize: 36,
+                                color: theme['numbers'],
+                                backgroundColor: theme['numbers_background'],
+                            }
+                        }
+                    }
+                },
+                {
+                    top: 740,
+                    left: 80,
+                    text: '常驻圈子',
+                    textStyle: {
+                        fontSize: 28,
+                        color: theme['title'],
+                    }
+                },
+                {
+                    top: 770,
+                    left: 60,
+                    right: 720,
+                    text: ['{a|#1}\n{a|#2}\n{a|#3}'],
+                    textStyle: {
+                        fontSize: 44,
+                        color: theme['title'],
+                        rich: {
+                            a: {
+                                align: 'left',
+                                lineHeight: 56,
+                                fontWeight: 'bold',
+                                // fontFamily: theme['num_font'],
+                                fontSize: 48,
+                                color: theme['ranking'],
+                            }
+                        }
+                    },
+                },
+                {
+                    top: 780,
+                    left: 80,
+                    right: 720,
+                    text: ['{a|' + three_most_topic[0] + '}\n{a|' + three_most_topic[1] + '}\n{a|' + three_most_topic[2] + '}'],
+                    textStyle: {
+                        fontSize: 32,
+                        color: theme['title'],
+                        rich: {
+                            a: {
+                                align: 'left',
+                                lineHeight: 56,
+                                fontWeight: 'bold',
+                                // fontFamily: theme['num_font'],
+                                fontSize: 32,
+                                color: theme['list_three_color'],
+                            }
+                        }
+                    },
+                },
+                {
+                    top: 780,
+                    right: 760,
+                    text: ['{a|' + post_topic[0] + '}{b|动态}\n{a|' + post_topic[1] + '}{b|动态}\n{a|' + post_topic[2] + '}{b|动态}'],
+                    textStyle: {
+                        fontSize: 24,
+                        color: theme['title_trans'],
+                        fontWeight: 'bold',
+                        rich: {
+                            b: {
+                                fontSize: 24,
+                                color: theme['title_trans'],
+                                fontWeight: 'bold',
+                                align: 'right',
+                            },
+                            a: {
+                                lineHeight: 56,
+                                align: 'right',
+                                fontWeight: 'bold',
+                                fontFamily: theme['num_font'],
+                                fontSize: 36,
+                                color: theme['list_three_color'],
+                                // backgroundColor: theme['numbers_background'],
+                            }
+                        }
+                    },
+                },
+                {
+                    top: 740,
+                    left: 720,
+                    text: '年度好友',
+                    textStyle: {
+                        fontSize: 28,
+                        color: theme['title'],
+                    }
+                },
+                {
+                    top: 770,
+                    left: 700,
+                    text: ['{a|#1}\n{a|#2}\n{a|#3}'],
+                    textStyle: {
+                        fontSize: 44,
+                        color: theme['title'],
+                        rich: {
+                            a: {
+                                align: 'left',
+                                lineHeight: 56,
+                                fontWeight: 'bold',
+                                // fontFamily: theme['num_font'],
+                                fontSize: 48,
+                                color: theme['ranking'],
+                            }
+                        }
+                    },
+                },
+                {
+                    top: 780,
+                    left: 720,
+                    right: 720,
+                    text: ['{a|' + three_most_interactive[0] + '}\n{a|' + three_most_interactive[1] + '}\n{a|' + three_most_interactive[2] + '}'],
+                    textStyle: {
+                        fontSize: 32,
+                        color: theme['title'],
+                        rich: {
+                            a: {
+                                align: 'left',
+                                lineHeight: 56,
+                                fontWeight: 'bold',
+                                // fontFamily: theme['num_font'],
+                                fontSize: 32,
+                                color: theme['list_three_color'],
+                            }
+                        }
+                    },
+                },
+                {
+                    top: 780,
+                    right: 80,
+                    text: ['{a|' + interaction_count[0] + '}{b|互动}\n{a|' + interaction_count[1] + '}{b|互动}\n{a|' + interaction_count[2] + '}{b|互动}'],
+                    textStyle: {
+                        fontSize: 24,
+                        color: theme['title_trans'],
+                        fontWeight: 'bold',
+                        rich: {
+                            b: {
+                                fontSize: 24,
+                                color: theme['title_trans'],
+                                fontWeight: 'bold',
+                                align: 'right',
+                            },
+                            a: {
+                                lineHeight: 56,
+                                align: 'right',
+                                fontWeight: 'bold',
+                                fontFamily: theme['num_font'],
+                                fontSize: 36,
+                                color: theme['list_three_color'],
+                                // backgroundColor: theme['numbers_background'],
+                            }
+                        }
+                    },
+                },
+                {
+                    bottom: 0,
+                    left: 20,
+                    text: '*1 此处获赞统计不同于主页的获赞统计，不包括已删除动态\n*2 统计基于本地数据，可能由于某些问题不够准确\n*3 若曾设置某动态消息不再提醒则可能造成误差\n',
+                    textStyle: {
+                        fontSize: 12,
+                        color: theme['footer'],
+                        fontWeight: 'normal',
+                    }
+                },
+                {
+                    bottom: 10,
+                    left: 440,
+                    text: 'Generated by lzzmm/Jike-crawl at {% curr_time %}',
+                    link: 'https://github.com/lzzmm/Jike-crawl',
+                    textStyle: {
+                        fontSize: 14,
+                        color: theme['footer'],
+                        fontWeight: 'normal',
+                        fontFamily: 'CamingoCodeRegular',
+                    }
+                }
+            ],
+            toolbox: {
+                show: true,
+                itemSize: 20,
+                top: '20',
+                feature: {
+                    saveAsImage: {
+                        show: true,
+                        iconStyle: {
+                        },
+                        backgroundColor: theme['background'],
+                    },
+                },
+            },
+            tooltip: [{}, {}],
+            legend: [{}, {}],
+            grid: [
+                {
+                    top: '200',
+                    // width: '50%',
+                    left: '200',
+                    right: '180',
+                    bottom: '681',
+                }, {
+                    // top: '400',
+                    left: '240',
+                    width: '50%',
+                    bottom: '600',
+                }
+            ],
+            xAxis: [
+                {
+                    gridIndex: 0,
+                    show: false,
+                    data: ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周', '第7周', '第8周', '第9周', '第10周', '第11周', '第12周',
+                        '第13周', '第14周', '第15周', '第16周', '第17周', '第18周', '第19周', '第20周', '第21周', '第22周', '第23周', '第24周',
+                        '第25周', '第26周', '第27周', '第28周', '第29周', '第30周', '第31周', '第32周', '第33周', '第34周', '第35周', '第36周',
+                        '第37周', '第38周', '第39周', '第40周', '第41周', '第42周', '第43周', '第44周', '第45周',
+                        '第46周', '第47周', '第48周', '第49周', '第50周', '第51周', '第52周', '第53周'],
+                },
+                {
+                    gridIndex: 1,
+                    show: false,
+                }
+            ],
+            yAxis: [
+                {
+                    axisLabel: {
+                        fontStyle: 'oblique',
+                        color: theme['label'],
+                        showMinLabel: false,
+                    },
+                    nameTextStyle: {
+
+                    },
+                    splitLine: {
+                        // show: false
+                        lineStyle: {
+                            width: '1',
+                            type: 'dashed',
+                            color: theme['label'],
+                            opacity: '0.4',
+                        }
+                    },
+
+                    gridIndex: 0,
+                    type: 'value'
+                },
+                {
+                    gridIndex: 1,
+                    show: false,
+                }
+            ],
+            visualMap: [
+                {
+                    id: 'bar',
+                    show: false,
+                    type: 'continuous',
+                    bottom: '480',
+                    min: 0,
+                    max: max_w,
+                    gridIndex: 0,
+                    seriesIndex: 0,
+                    left: '120',
+                    inRange: {
+                        color: [theme['bar_vis_low'], theme['bar_vis_high']],
+                    },
+                    outOfRange: {
+                        color: [theme['cal_zero']],
+                    },
+                },
+                {
+                    id: 'cal',
+                    gridIndex: 1,
+                    seriesIndex: 1,
+                    show: true,
+                    min: 1,
+                    max: max_d,
+                    type: 'piecewise',
+                    orient: 'horizontal',
+                    text: ['More', 'Less'],
+                    textStyle: {
+                        // fontStyle: 'oblique',
+                        fontFamily: theme['num_font'],
+                        color: theme['label'],
+                        width: '200'
+                    },
+                    inRange: {
+                        color: [theme['cal_vis_low'], theme['cal_vis_high']],
+                    },
+                    outOfRange: {
+                        color: [theme['cal_zero']],
+                    },
+                    itemGap: 5,
+                    // left: 'center',
+                    right: '140',
+                    bottom: '480',
+                }
+            ],
+            calendar: {
+                range: year,
+                top: '400',
+                left: '200',
+                itemStyle: {
+                    color: theme['background'],
+                    borderWidth: 4,
+                    borderColor: theme['background'],
+                },
+                dayLabel: { show: false, firstDay: 0, nameMap: 'EN' },
+                splitLine: false,
+                monthLabel: {
+                    show: true,
+                    color: theme['label'],
+                    position: 'end',
+                    fontStyle: 'oblique',
+                    nameMap: 'EN'
+                },
+                yearLabel: {
+                    // show: false,
+                    margin: 2,
+                    color: theme['label'],
+                    nameMap: 'EN',
+                    fontSize: 14,
+                    fontFamily: theme['num_font'],
+                },
+                cellSize: [20, 20],
+            },
+            series: [
+                {
+                    type: 'bar',
+                    xAxisIndex: 0,
+                    yAxisIndex: 0,
+                    colorBy: 'data',
+                    roundCap: true,
+                    barWidth: '16',
+                    // barGap: '60%',
+                    // barCategoryGap: '50%',
+                    data: data_w,
+                    // visualMap: false,
+                    // stack: 'chart',
+                    itemStyle: {
+                        borderRadius: 4,
+                    },
+                }, {
+                    type: 'heatmap',
+                    xAxisIndex: 1,
+                    yAxisIndex: 1,
+                    coordinateSystem: 'calendar',
+                    data: data_d,
+                    // stack: 'chart',
+                },
+            ]
+        }
+
+        fusionChart.setOption(fusionOption);
+    </script>
+</body>
+<footer>
+</footer>

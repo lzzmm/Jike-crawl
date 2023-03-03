@@ -10,12 +10,7 @@ TODO:
 2. update README
 3. kuakua
 
-profile createAt xx days
-xx posts a year
-xx replies
-xx likes
-3 most interact
-3 most topic
+Gen `report_data.js\on` in `data_analysis.py`
 
 [中文](#删号跑路中文)
 
